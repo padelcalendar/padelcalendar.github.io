@@ -1,0 +1,41 @@
+{
+  "name": "Padel Calendar",
+  "short_name": "Padel Calendar",
+  "description": "Tu calendario personal de padel - partidos, clases, torneos y más.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0F1E",
+  "theme_color": "#0A0F1E",
+  "lang": "es",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "lifestyle", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Nuevo partido",
+      "short_name": "Partido",
+      "description": "Agregar un nuevo partido",
+      "url": "./index.html?action=nuevo"
+    },
+    {
+      "name": "Ver calendario",
+      "short_name": "Calendario",
+      "description": "Abrir el calendario",
+      "url": "./index.html?tab=calendar"
+    }
+  ]
+}

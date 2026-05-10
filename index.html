@@ -1,0 +1,1932 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#0A0F1E"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Padel Calendar"/>
+  <title>Padel Calendar</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg-deep: #0A0F1E;
+      --bg-card: #111827;
+      --bg-surface: #1A2236;
+      --bg-elevated: #1E2D47;
+      --accent: #00E5A0;
+      --accent-dim: rgba(0,229,160,0.15);
+      --accent-glow: rgba(0,229,160,0.08);
+      --accent2: #4D9EFF;
+      --accent2-dim: rgba(77,158,255,0.15);
+      --warn: #FFB547;
+      --warn-dim: rgba(255,181,71,0.15);
+      --danger: #FF5C6A;
+      --danger-dim: rgba(255,92,106,0.15);
+      --purple: #9B8BFF;
+      --purple-dim: rgba(155,139,255,0.15);
+      --text-primary: #F0F4FF;
+      --text-secondary: #8896B3;
+      --text-muted: #4A5568;
+      --border: rgba(255,255,255,0.07);
+      --border-mid: rgba(255,255,255,0.12);
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height:100%; width:100%; background:var(--bg-deep); color:var(--text-primary); font-family:'Sora',sans-serif; overflow:hidden; -webkit-font-smoothing:antialiased; }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      position:fixed; inset:0; z-index:1000;
+      background:var(--bg-deep);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:40px 32px;
+      text-align:center;
+    }
+    #login-screen.hidden { display:none; }
+    .login-logo { font-size:64px; margin-bottom:24px; }
+    .login-title { font-size:28px; font-weight:700; letter-spacing:-0.5px; margin-bottom:8px; }
+    .login-sub { font-size:15px; color:var(--text-secondary); margin-bottom:48px; line-height:1.5; }
+    .login-features { width:100%; margin-bottom:40px; display:flex; flex-direction:column; gap:12px; }
+    .login-feature { display:flex; align-items:center; gap:12px; text-align:left; background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; }
+    .login-feature-icon { font-size:22px; flex-shrink:0; }
+    .login-feature-text { font-size:13px; color:var(--text-secondary); line-height:1.4; }
+    .login-feature-text strong { color:var(--text-primary); font-weight:600; }
+    .btn-google {
+      width:100%; padding:16px;
+      background:white; color:#1a1a1a;
+      border:none; border-radius:var(--radius-lg);
+      font-family:'Sora',sans-serif; font-size:15px; font-weight:600;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.3);
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-google:active { opacity:0.85; transform:scale(0.98); }
+    .btn-google svg { width:20px; height:20px; }
+    .login-note { font-size:11px; color:var(--text-muted); margin-top:16px; }
+
+    /* ── LOADING OVERLAY ── */
+    #loading-overlay {
+      position:fixed; inset:0; z-index:999;
+      background:var(--bg-deep);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    }
+    #loading-overlay.hidden { display:none; }
+    .spinner {
+      width:36px; height:36px;
+      border:3px solid var(--border);
+      border-top-color:var(--accent);
+      border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-text { font-size:14px; color:var(--text-secondary); }
+
+    /* ── APP SHELL ── */
+    #app { height:100dvh; display:flex; flex-direction:column; overflow:hidden; }
+
+    /* ── HEADER ── */
+    #header {
+      padding:52px 20px 16px;
+      background:var(--bg-deep);
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--border);
+      flex-shrink:0; position:relative;
+    }
+    #header::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:0.3; }
+    .header-left { display:flex; align-items:center; gap:10px; }
+    .app-logo { width:36px; height:36px; background:var(--accent-dim); border:1px solid rgba(0,229,160,0.3); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .app-title { font-size:17px; font-weight:600; letter-spacing:-0.3px; }
+    .app-subtitle { font-size:11px; color:var(--text-secondary); letter-spacing:0.5px; }
+    .header-right { display:flex; align-items:center; gap:8px; }
+    #notif-btn { width:38px; height:38px; border-radius:50%; background:var(--bg-surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; position:relative; transition:background 0.2s; }
+    #notif-btn:active { background:var(--bg-elevated); }
+    .notif-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; position:absolute; top:6px; right:6px; border:2px solid var(--bg-deep); }
+    #user-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); cursor:pointer; }
+    #user-avatar-placeholder { width:34px; height:34px; border-radius:50%; background:var(--accent-dim); border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; }
+
+    /* ── CONTENT ── */
+    #content { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding-bottom:80px; }
+    #content::-webkit-scrollbar { display:none; }
+
+    /* ── BOTTOM NAV ── */
+    #bottom-nav { position:fixed; bottom:0; left:0; right:0; height:72px; background:rgba(10,15,30,0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-around; padding:0 10px 8px; z-index:100; }
+    .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px; cursor:pointer; border-radius:var(--radius-md); transition:all 0.2s; position:relative; }
+    .nav-item:active { background:var(--bg-surface); }
+    .nav-icon { font-size:20px; transition:transform 0.2s; }
+    .nav-label { font-size:10px; color:var(--text-secondary); font-weight:500; transition:color 0.2s; }
+    .nav-item.active .nav-label { color:var(--accent); }
+    .nav-item.active .nav-icon { transform:scale(1.15); }
+    .nav-active-bar { position:absolute; top:4px; width:20px; height:2px; background:var(--accent); border-radius:2px; opacity:0; transition:opacity 0.2s; }
+    .nav-item.active .nav-active-bar { opacity:1; }
+
+    /* ── FAB ── */
+    #fab { position:fixed; bottom:88px; right:20px; width:52px; height:52px; background:var(--accent); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:300; color:#0A0F1E; box-shadow:0 8px 24px rgba(0,229,160,0.3); cursor:pointer; z-index:50; transition:transform 0.15s,box-shadow 0.15s; }
+    #fab:active { transform:scale(0.93); box-shadow:0 4px 12px rgba(0,229,160,0.2); }
+
+    /* ── VIEWS ── */
+    .view { display:none; }
+    .view.active { display:block; }
+
+    /* ── HOME ── */
+    .home-hero { padding:20px 20px 16px; }
+    .today-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:20px; position:relative; overflow:hidden; }
+    .today-card::before { content:''; position:absolute; top:-30px; right:-30px; width:120px; height:120px; background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%); pointer-events:none; }
+    .today-label { font-size:11px; color:var(--text-secondary); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+    .today-date { font-size:22px; font-weight:700; letter-spacing:-0.5px; }
+    .today-events-count { margin-top:14px; display:flex; align-items:center; gap:10px; }
+    .event-pill { display:inline-flex; align-items:center; gap:5px; background:var(--accent-dim); border:1px solid rgba(0,229,160,0.2); border-radius:50px; padding:4px 10px; font-size:12px; color:var(--accent); font-weight:500; }
+    .next-up { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+    .next-label { font-size:11px; color:var(--text-secondary); margin-bottom:8px; }
+    .next-event { display:flex; align-items:center; gap:12px; }
+    .next-event-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .next-event-info { flex:1; }
+    .next-event-name { font-size:14px; font-weight:600; }
+    .next-event-time { font-size:12px; color:var(--text-secondary); margin-top:1px; }
+    .next-event-countdown { font-size:11px; font-weight:500; background:var(--bg-surface); border-radius:6px; padding:4px 8px; font-family:'JetBrains Mono',monospace; }
+    .stats-row { padding:0 20px 16px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 12px; text-align:center; }
+    .stat-value { font-size:22px; font-weight:700; }
+    .stat-label { font-size:10px; color:var(--text-secondary); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
+    .section-header { padding:0 20px 12px; display:flex; align-items:center; justify-content:space-between; }
+    .section-title { font-size:15px; font-weight:600; }
+    .section-link { font-size:12px; color:var(--accent); cursor:pointer; }
+    .events-list { padding:0 20px; display:flex; flex-direction:column; gap:10px; }
+    .event-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:border-color 0.2s,background 0.2s; position:relative; overflow:hidden; }
+    .event-card:active { background:var(--bg-surface); }
+    .event-card-accent { width:3px; height:100%; position:absolute; left:0; top:0; border-radius:3px 0 0 3px; }
+    .event-card-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .event-card-body { flex:1; min-width:0; }
+    .event-card-title { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .event-card-meta { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+    .event-card-right { text-align:right; flex-shrink:0; }
+    .event-card-time { font-size:12px; font-weight:500; font-family:'JetBrains Mono',monospace; }
+    .event-card-duration { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+    .badge { display:inline-block; font-size:10px; font-weight:600; padding:2px 7px; border-radius:50px; text-transform:uppercase; letter-spacing:0.5px; }
+
+    /* ── CALENDAR ── */
+    .calendar-header-row { padding:16px 20px 10px; display:flex; align-items:center; justify-content:space-between; }
+    .cal-nav-btn { width:36px; height:36px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; transition:background 0.15s; }
+    .cal-nav-btn:active { background:var(--bg-elevated); }
+    .cal-month-year { font-size:16px; font-weight:600; }
+    .cal-grid { padding:0 20px; }
+    .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:6px; }
+    .cal-wd { text-align:center; font-size:11px; color:var(--text-secondary); font-weight:500; padding:4px 0; letter-spacing:0.5px; }
+    .cal-days { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .cal-day { aspect-ratio:1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; position:relative; transition:background 0.15s; gap:2px; }
+    .cal-day:active { background:var(--bg-elevated); }
+    .cal-day-num { font-size:13px; font-weight:400; line-height:1; }
+    .cal-day.other-month .cal-day-num { color:var(--text-muted); }
+    .cal-day.today { background:var(--accent-dim); }
+    .cal-day.today .cal-day-num { color:var(--accent); font-weight:600; }
+    .cal-day.selected { background:var(--accent); }
+    .cal-day.selected .cal-day-num { color:#0A0F1E; font-weight:700; }
+    .cal-day-dots { display:flex; gap:2px; align-items:center; height:5px; }
+    .cal-dot { width:4px; height:4px; border-radius:50%; flex-shrink:0; }
+    .cal-day.selected .cal-dot { background:rgba(10,15,30,0.5) !important; }
+    .day-detail { margin:14px 20px 0; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:16px; min-height:100px; }
+    .day-detail-title { font-size:13px; font-weight:600; margin-bottom:12px; color:var(--text-secondary); }
+    .day-detail-empty { text-align:center; padding:20px; color:var(--text-muted); font-size:13px; }
+    .day-events { display:flex; flex-direction:column; gap:8px; }
+    .day-event-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-surface); border-radius:12px; cursor:pointer; transition:background 0.15s; }
+    .day-event-item:active { background:var(--bg-elevated); }
+    .day-event-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .day-event-text { flex:1; }
+    .day-event-name { font-size:13px; font-weight:500; }
+    .day-event-time { font-size:11px; color:var(--text-secondary); margin-top:1px; }
+    .day-event-arrow { font-size:14px; color:var(--text-muted); }
+
+    /* ── MODAL ── */
+    #modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:200; display:none; align-items:flex-end; }
+    #modal-overlay.open { display:flex; }
+    #modal { width:100%; background:var(--bg-card); border-radius:28px 28px 0 0; border-top:1px solid var(--border-mid); padding:12px 20px 40px; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); max-height:85dvh; overflow-y:auto; }
+    #modal.open { transform:translateY(0); }
+    #modal::-webkit-scrollbar { display:none; }
+    .modal-handle { width:36px; height:4px; background:var(--border-mid); border-radius:2px; margin:0 auto 20px; }
+    .modal-title { font-size:18px; font-weight:700; margin-bottom:20px; }
+    .form-group { margin-bottom:16px; }
+    .form-label { font-size:12px; color:var(--text-secondary); margin-bottom:6px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; }
+    .form-input { width:100%; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; color:var(--text-primary); font-family:'Sora',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s; -webkit-appearance:none; }
+    .form-input:focus { border-color:rgba(0,229,160,0.4); }
+    .form-input option { background:var(--bg-card); }
+    .type-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .type-option { background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px; text-align:center; cursor:pointer; transition:all 0.15s; }
+    .type-option.selected { border-color:var(--accent); background:var(--accent-dim); }
+    .type-option-icon { font-size:20px; margin-bottom:4px; }
+    .type-option-label { font-size:12px; font-weight:500; }
+    .type-option.selected .type-option-label { color:var(--accent); }
+    .time-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .result-row { display:flex; align-items:center; gap:8px; }
+    .result-option { flex:1; text-align:center; padding:8px 4px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; cursor:pointer; font-size:12px; font-weight:500; transition:all 0.15s; }
+    .result-option.selected { border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+    .btn-primary { width:100%; padding:16px; background:var(--accent); color:#0A0F1E; border:none; border-radius:var(--radius-lg); font-family:'Sora',sans-serif; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; transition:opacity 0.15s,transform 0.1s; }
+    .btn-primary:active { opacity:0.85; transform:scale(0.98); }
+
+    /* ── STATS ── */
+    .stats-page { padding:16px 20px; }
+    .stats-page-title { font-size:22px; font-weight:700; margin-bottom:4px; }
+    .stats-page-sub { font-size:13px; color:var(--text-secondary); margin-bottom:20px; }
+    .big-stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:20px; margin-bottom:12px; display:flex; align-items:center; gap:16px; }
+    .big-stat-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+    .big-stat-value { font-size:28px; font-weight:700; letter-spacing:-0.5px; }
+    .big-stat-label { font-size:13px; color:var(--text-secondary); margin-top:2px; }
+    .chart-bar-container { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:18px 16px; margin-bottom:12px; }
+    .chart-bar-title { font-size:13px; font-weight:600; margin-bottom:14px; }
+    .chart-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .chart-bar-label { font-size:11px; color:var(--text-secondary); width:28px; text-align:right; flex-shrink:0; }
+    .chart-bar-track { flex:1; height:6px; background:var(--bg-surface); border-radius:3px; overflow:hidden; }
+    .chart-bar-fill { height:100%; border-radius:3px; transition:width 0.8s ease; }
+    .chart-bar-val { font-size:11px; color:var(--text-secondary); width:30px; font-family:'JetBrains Mono',monospace; }
+    .type-breakdown { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .type-stat { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; }
+    .type-stat-icon { font-size:20px; margin-bottom:6px; }
+    .type-stat-num { font-size:20px; font-weight:700; }
+    .type-stat-label { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+    /* ── EVENT DETAIL ── */
+    #event-detail-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:300; display:none; align-items:flex-end; }
+    #event-detail-overlay.open { display:flex; }
+    #event-detail-panel { width:100%; background:var(--bg-card); border-radius:28px 28px 0 0; border-top:1px solid var(--border-mid); padding:12px 20px 40px; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); }
+    #event-detail-panel.open { transform:translateY(0); }
+    .detail-type-badge { display:inline-flex; align-items:center; gap:6px; border-radius:50px; padding:6px 12px; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; }
+    .detail-title { font-size:22px; font-weight:700; margin-bottom:6px; }
+    .detail-date { font-size:14px; color:var(--text-secondary); margin-bottom:20px; }
+    .detail-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+    .detail-row:last-of-type { border-bottom:none; }
+    .detail-row-icon { font-size:18px; width:24px; text-align:center; flex-shrink:0; }
+    .detail-row-text { flex:1; }
+    .detail-row-label { font-size:11px; color:var(--text-secondary); }
+    .detail-row-val { font-size:14px; font-weight:500; margin-top:1px; }
+    .btn-danger { width:100%; padding:14px; background:var(--danger-dim); color:var(--danger); border:1px solid rgba(255,92,106,0.25); border-radius:var(--radius-lg); font-family:'Sora',sans-serif; font-size:14px; font-weight:600; cursor:pointer; margin-top:16px; transition:opacity 0.15s; }
+    .btn-danger:active { opacity:0.7; }
+
+    /* ── USER MENU ── */
+    #user-menu-overlay { position:fixed; inset:0; z-index:600; display:none; align-items:flex-end; }
+    #user-menu-overlay.open { display:flex; }
+    .user-menu-bg { position:absolute; inset:0; background:rgba(0,0,0,0.5); }
+    .user-menu-sheet { position:relative; z-index:1; width:100%; background:var(--bg-card); border-radius:28px 28px 0 0; border-top:1px solid var(--border-mid); padding:12px 20px 40px; }
+    .user-menu-avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); margin:0 auto 12px; display:block; }
+    .user-menu-name { text-align:center; font-size:16px; font-weight:600; }
+    .user-menu-email { text-align:center; font-size:12px; color:var(--text-secondary); margin-bottom:24px; }
+    .btn-signout { width:100%; padding:14px; background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius-lg); font-family:'Sora',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:background 0.15s; }
+    .btn-signout:active { background:var(--bg-elevated); }
+
+    /* ── TOAST ── */
+    #toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg-elevated); border:1px solid var(--border-mid); border-radius:50px; padding:10px 20px; font-size:13px; font-weight:500; white-space:nowrap; z-index:400; opacity:0; transition:all 0.3s; pointer-events:none; }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    /* ── NOTIF PANEL ── */
+    #notif-panel { position:fixed; inset:0; z-index:500; display:none; }
+    #notif-panel.open { display:flex; flex-direction:column; }
+    .notif-bg { position:absolute; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+    .notif-sheet { position:relative; z-index:1; margin-top:auto; background:var(--bg-card); border-radius:28px 28px 0 0; padding:12px 20px 40px; max-height:70dvh; overflow-y:auto; }
+    .notif-sheet::-webkit-scrollbar { display:none; }
+    .notif-item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border); }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-dot-big { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+    .notif-text { flex:1; }
+    .notif-title { font-size:14px; font-weight:500; }
+    .notif-sub { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+    .notif-time { font-size:11px; color:var(--text-muted); flex-shrink:0; margin-top:2px; }
+
+    /* misc */
+    .no-events { text-align:center; padding:30px 20px; color:var(--text-muted); font-size:13px; }
+    .no-events-icon { font-size:36px; margin-bottom:8px; opacity:0.5; }
+    .history-list { padding:0 20px; display:flex; flex-direction:column; gap:10px; }
+    .cat-option { background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:7px 10px; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; color:var(--text-secondary); min-width:36px; text-align:center; }
+    .cat-option.selected { border-color:var(--accent2); background:var(--accent2-dim); color:var(--accent2); }
+    .club-suggestion-item { padding:11px 14px; font-size:13px; cursor:pointer; transition:background 0.1s; border-bottom:1px solid var(--border); }
+    .club-suggestion-item:last-child { border-bottom:none; }
+    .club-suggestion-item:active { background:var(--bg-elevated); }
+    .history-month-label { font-size:12px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:8px; padding:0 4px; }
+    /* ── SOCIAL ── */
+    .social-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:0; }
+    .social-tab { flex:1; text-align:center; padding:12px; font-size:13px; font-weight:500; color:var(--text-secondary); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+    .social-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .chat-messages { padding:12px 16px; display:flex; flex-direction:column; gap:10px; min-height:200px; }
+    .chat-bubble { max-width:78%; display:flex; flex-direction:column; gap:2px; }
+    .chat-bubble.mine { align-self:flex-end; align-items:flex-end; }
+    .chat-bubble.other { align-self:flex-start; align-items:flex-start; }
+    .chat-name { font-size:10px; color:var(--text-secondary); font-weight:500; }
+    .chat-text { background:var(--bg-surface); border:1px solid var(--border); border-radius:16px; padding:9px 13px; font-size:13px; line-height:1.4; word-break:break-word; }
+    .chat-bubble.mine .chat-text { background:var(--accent-dim); border-color:rgba(0,229,160,0.2); color:var(--text-primary); border-radius:16px 16px 4px 16px; }
+    .chat-bubble.other .chat-text { border-radius:16px 16px 16px 4px; }
+    .chat-time { font-size:10px; color:var(--text-muted); }
+    .chat-input-bar { position:sticky; bottom:0; background:var(--bg-deep); border-top:1px solid var(--border); padding:10px 16px 16px; display:flex; gap:8px; align-items:center; }
+    .chat-input { flex:1; background:var(--bg-surface); border:1px solid var(--border); border-radius:22px; padding:10px 16px; color:var(--text-primary); font-family:'Sora',sans-serif; font-size:13px; outline:none; }
+    .chat-send { width:38px; height:38px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:16px; transition:opacity 0.15s; }
+    .chat-send:active { opacity:0.7; }
+    .profile-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:20px; margin:12px 16px; }
+    .profile-avatar { width:64px; height:64px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); }
+    .profile-field { background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:11px 14px; color:var(--text-primary); font-family:'Sora',sans-serif; font-size:13px; outline:none; width:100%; margin-top:6px; }
+    .player-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 16px; margin:0 16px 10px; display:flex; gap:12px; align-items:center; cursor:pointer; }
+    .player-card:active { background:var(--bg-surface); }
+    .player-avatar-sm { width:42px; height:42px; border-radius:50%; object-fit:cover; border:1px solid var(--border); flex-shrink:0; background:var(--bg-elevated); display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .invite-bubble { background:var(--accent-dim); border:1px solid rgba(0,229,160,0.25); border-radius:12px; padding:10px 14px; margin:0 16px 10px; font-size:13px; display:flex; gap:10px; align-items:center; }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Cargando Padel Calendar...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="hidden">
+  <div class="login-logo"><img src="icon-512.png" style="width:80px;height:80px;border-radius:20px;object-fit:cover;"/></div>
+  <div class="login-title">Padel Calendar</div>
+  <div class="login-sub">Tu aplicación personal de padel.
+Organizate como un profesional.</div>
+  <div class="login-features">
+    <div class="login-feature">
+      <div class="login-feature-icon">☁️</div>
+      <div class="login-feature-text"><strong>Sincronización en la nube</strong><br>Accedé desde cualquier dispositivo.</div>
+    </div>
+    <div class="login-feature">
+      <div class="login-feature-icon">🔔</div>
+      <div class="login-feature-text"><strong>Recordatorios inteligentes</strong><br>¡Te avisamos antes de cada evento!</div>
+    </div>
+    <div class="login-feature">
+      <div class="login-feature-icon">📊</div>
+      <div class="login-feature-text"><strong>Estadísticas de tu juego</strong><br>Horas, Winrate, Rachas y más!</div>
+    </div>
+  </div>
+  <button class="btn-google" onclick="signInWithGoogle()">
+    <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Continuar con Google
+  </button>
+  <div class="login-note">Tus datos son privados y solo accesibles con tu cuenta.</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="header">
+    <div class="header-left">
+      <div class="app-logo" style="background:transparent;border:none;padding:0;overflow:hidden;"><img src="icon-512.png" style="width:36px;height:36px;border-radius:10px;object-fit:cover;display:block;"/></div>
+      <div>
+        <div class="app-title">Padel Calendar</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="profile-btn" onclick="openProfilePanel()" style="position:relative;cursor:pointer;">
+        <div id="user-avatar-placeholder" style="width:34px;height:34px;border-radius:50%;background:var(--accent-dim);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;">👤</div>
+        <img id="user-avatar" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);" alt="avatar"/>
+        <div id="notif-dot" style="display:none;position:absolute;bottom:0;right:0;width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid var(--bg-deep);"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+    <!-- HOME -->
+    <div id="view-home" class="view active">
+      <div class="home-hero">
+        <div class="today-card">
+          <div class="today-label">HOY</div>
+          <div class="today-date" id="today-full-date">—</div>
+          <div class="today-events-count" id="today-events-count"></div>
+
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value" id="stat-hours" style="color:var(--accent2)">0h</div><div class="stat-label">Últ. 7 días</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-total" style="color:var(--accent)">0</div><div class="stat-label">Eventos</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-hours30" style="color:var(--purple)">0h</div><div class="stat-label">Último mes</div></div>
+      </div>
+
+      <div class="events-list" id="upcoming-list">
+        <div class="no-events"><div class="no-events-icon">🎾</div><div>Sin eventos próximos</div><div style="margin-top:4px;font-size:12px;color:var(--text-muted)">Tocá + para agregar uno</div></div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="view-calendar" class="view">
+      <div class="calendar-header-row">
+        <div class="cal-nav-btn" id="cal-prev">‹</div>
+        <div class="cal-month-year" id="cal-month-year">—</div>
+        <div class="cal-nav-btn" id="cal-next">›</div>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-weekdays">
+          <div class="cal-wd">DO</div><div class="cal-wd">LU</div><div class="cal-wd">MA</div>
+          <div class="cal-wd">MI</div><div class="cal-wd">JU</div><div class="cal-wd">VI</div><div class="cal-wd">SÁ</div>
+        </div>
+        <div class="cal-days" id="cal-days"></div>
+      </div>
+      <!-- Leyenda de colores -->
+      <div style="display:flex;gap:12px;padding:8px 20px 2px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div style="width:8px;height:8px;border-radius:50%;background:#00E5A0"></div>Partido</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div style="width:8px;height:8px;border-radius:50%;background:#4D9EFF"></div>Clase</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div style="width:8px;height:8px;border-radius:50%;background:#FFB547"></div>Torneo</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div style="width:8px;height:8px;border-radius:50%;background:#9B8BFF"></div>Cancha Abierta</div>
+      </div>
+      <div class="day-detail" id="day-detail">
+        <div class="day-detail-title" id="day-detail-title">Seleccioná un día</div>
+        <div id="day-detail-events"></div>
+      </div>
+    </div>
+
+
+
+    <!-- SOCIAL -->
+    <div id="view-social" class="view">
+      <div id="social-content"></div>
+    </div>
+
+    <!-- STATS -->
+    <div id="view-stats" class="view">
+      <div class="stats-page">
+        <div class="stats-page-title">Estadísticas</div>
+        <div class="stats-page-sub">Tu progreso en padel</div>
+        <div id="stats-content"></div>
+        <div style="margin-top:4px;padding-bottom:8px;">
+          <div onclick="openHistorial()" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;cursor:pointer;transition:background 0.15s;" onmousedown="this.style.background='var(--bg-surface)'" onmouseup="this.style.background='var(--bg-card)'" ontouchstart="this.style.background='var(--bg-surface)'" ontouchend="this.style.background='var(--bg-card)'">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:38px;height:38px;background:var(--accent-dim);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;">Historial completo</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:1px;">Ver todos los eventos pasados</div>
+              </div>
+            </div>
+            <div style="font-size:18px;color:var(--text-muted);">›</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchTab('home')"><div class="nav-active-bar"></div><div class="nav-icon">🏠</div><div class="nav-label">Inicio</div></div>
+    <div class="nav-item" id="nav-calendar" onclick="switchTab('calendar')"><div class="nav-active-bar"></div><div class="nav-icon">📅</div><div class="nav-label">Calendario</div></div>
+    <div class="nav-item" id="nav-fab-center" onclick="openModal()" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;">
+      <div style="width:46px;height:46px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#0A0F1E;font-weight:700;box-shadow:0 4px 16px rgba(0,229,160,0.3);margin-bottom:2px;">＋</div>
+    </div>
+    <div class="nav-item" id="nav-stats" onclick="switchTab('stats')"><div class="nav-active-bar"></div><div class="nav-icon">📊</div><div class="nav-label">Stats</div></div>
+    <div class="nav-item" id="nav-social" onclick="switchTab('social')"><div class="nav-active-bar"></div><div class="nav-icon">💬</div><div class="nav-label">Social</div></div>
+  </div>
+</div>
+
+<!-- ADD EVENT MODAL -->
+<div id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title-text">Nuevo Evento</div>
+    <div class="form-group">
+      <div class="form-label">Tipo de evento</div>
+      <div class="type-grid">
+        <div class="type-option selected" onclick="selectType('partido')" id="type-partido"><div class="type-option-icon">🏓</div><div class="type-option-label">Partido</div></div>
+        <div class="type-option" onclick="selectType('clase')" id="type-clase"><div class="type-option-icon">🎓</div><div class="type-option-label">Clase</div></div>
+        <div class="type-option" onclick="selectType('torneo')" id="type-torneo"><div class="type-option-icon">🏆</div><div class="type-option-label">Torneo</div></div>
+        <div class="type-option" onclick="selectType('entrenamiento')" id="type-entrenamiento"><div class="type-option-icon">🎾</div><div class="type-option-label">Cancha Abierta</div></div>
+      </div>
+    </div>
+    <!-- Categoría -->
+    <div class="form-group">
+      <div class="form-label">Categoría</div>
+      <div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;" id="cat-row">
+        <div class="cat-option" onclick="selectCat('C9')" id="cat-C9" style="flex-shrink:0">C9</div>
+        <div class="cat-option" onclick="selectCat('C8')" id="cat-C8" style="flex-shrink:0">C8</div>
+        <div class="cat-option" onclick="selectCat('C7')" id="cat-C7" style="flex-shrink:0">C7</div>
+        <div class="cat-option" onclick="selectCat('C6')" id="cat-C6" style="flex-shrink:0">C6</div>
+        <div class="cat-option" onclick="selectCat('C5')" id="cat-C5" style="flex-shrink:0">C5</div>
+        <div class="cat-option" onclick="selectCat('C4')" id="cat-C4" style="flex-shrink:0">C4</div>
+        <div class="cat-option" onclick="selectCat('C3')" id="cat-C3" style="flex-shrink:0">C3</div>
+        <div class="cat-option" onclick="selectCat('C2')" id="cat-C2" style="flex-shrink:0">C2</div>
+        <div class="cat-option" onclick="selectCat('C1')" id="cat-C1" style="flex-shrink:0">C1</div>
+      </div>
+    </div>
+    <!-- Modalidad (oculta para Clase) -->
+    <div class="form-group" id="group-modalidad">
+      <div class="form-label">Modalidad</div>
+      <div style="display:flex;gap:8px;">
+        <div class="result-option" onclick="selectModal('Mixta')" id="modal-Mixta" style="flex:1">Mixta</div>
+        <div class="result-option" onclick="selectModal('Hombres')" id="modal-Hombres" style="flex:1.4">Hombres</div>
+        <div class="result-option" onclick="selectModal('Damas')" id="modal-Damas" style="flex:1">Damas</div>
+      </div>
+    </div>
+    <!-- Profesor (solo Clase) -->
+    <div class="form-group" id="group-profesor" style="display:none">
+      <div class="form-label">Profesor/a</div>
+      <input class="form-input" type="text" id="form-profesor" placeholder="Nombre del profesor/a" oninput="filterProfesorSuggestions(this.value)" autocomplete="off"/>
+      <div id="profesor-suggestions" style="display:none;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:4px;overflow:hidden;"></div>
+    </div>
+    <!-- Fecha -->
+    <div class="form-group"><div class="form-label">Fecha</div><input class="form-input" type="date" id="form-date"/></div>
+    <!-- Horario -->
+    <div class="form-group">
+      <div class="form-label">Horario</div>
+      <div class="time-row">
+        <input class="form-input" type="time" id="form-time-start" onchange="calcEndTime()"/>
+        <select class="form-input" id="form-duration" onchange="calcEndTime()">
+          <option value="">Duración</option>
+          <option value="30">30 min</option>
+          <option value="60">1 hora</option>
+          <option value="90">1h 30min</option>
+          <option value="120">2 horas</option>
+          <option value="150">2h 30min</option>
+          <option value="180">3 horas</option>
+          <option value="240">4 horas</option>
+          <option value="300">5 horas</option>
+        </select>
+      </div>
+      <div id="time-end-display" style="font-size:11px;color:var(--text-secondary);margin-top:6px;padding-left:2px;display:none;">Fin: <span id="time-end-label">—</span></div>
+    </div>
+    <!-- Club -->
+    <div class="form-group">
+      <div class="form-label">Club</div>
+      <input class="form-input" type="text" id="form-location" placeholder="ej: Club Náutico" oninput="filterClubSuggestions(this.value)" autocomplete="off"/>
+      <div id="club-suggestions" style="display:none;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:4px;overflow:hidden;"></div>
+    </div>
+    <!-- Compañero + lado -->
+    <div class="form-group">
+      <div class="form-label">Compañero <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></div>
+      <input class="form-input" type="text" id="form-companion" placeholder="Nombre del compañero"/>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <div class="result-option" onclick="selectSide('Drive')" id="side-Drive" style="flex:1">Drive</div>
+        <div class="result-option" onclick="selectSide('Revés')" id="side-Reves" style="flex:1">Revés</div>
+        <div class="result-option" onclick="selectSide('Ambos')" id="side-Ambos" style="flex:1">Ambos</div>
+      </div>
+    </div>
+    <!-- Resultado (solo editar) -->
+    <div class="form-group" id="group-result" style="display:none">
+      <div class="form-label">Resultado</div>
+      <div class="result-row">
+        <div class="result-option selected" onclick="selectResult('pendiente')" id="res-pendiente">🤝 Amistoso</div>
+        <div class="result-option" onclick="selectResult('ganado')" id="res-ganado">✅ Ganado</div>
+        <div class="result-option" onclick="selectResult('perdido')" id="res-perdido">❌ Perdido</div>
+      </div>
+    </div>
+    <!-- Recordatorio -->
+    <div class="form-group">
+      <div class="form-label">Recordatorio</div>
+      <select class="form-input" id="form-reminder">
+        <option value="0">Sin recordatorio</option>
+        <option value="15">15 minutos antes</option>
+        <option value="30" selected>30 minutos antes</option>
+        <option value="60">1 hora antes</option>
+        <option value="120">2 horas antes</option>
+        <option value="360">6 horas antes</option>
+        <option value="720">12 horas antes</option>
+        <option value="1440">1 día antes</option>
+        <option value="2880">2 días antes</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <div class="form-label">Turno fijo</div>
+      <div id="turno-fijo-row" onclick="toggleTurnoFijo()" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+        <div>
+          <div style="font-size:13px;font-weight:500;">🔁 Repetir semanalmente</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Genera turnos para las próximas 12 semanas</div>
+        </div>
+        <div id="turno-fijo-toggle" style="width:44px;height:26px;border-radius:13px;background:var(--bg-elevated);border:1px solid var(--border);position:relative;transition:background 0.2s;flex-shrink:0;">
+          <div id="turno-fijo-thumb" style="width:20px;height:20px;border-radius:50%;background:var(--text-muted);position:absolute;top:2px;left:2px;transition:all 0.2s;"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveEvent()">Guardar evento</button>
+    <div style="height:4px"></div>
+  </div>
+</div>
+
+<!-- EVENT DETAIL -->
+<div id="event-detail-overlay" onclick="handleDetailOverlayClick(event)">
+  <div id="event-detail-panel">
+    <div style="width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 20px;"></div>
+    <div id="event-detail-content"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+      <button class="btn-primary" onclick="editCurrentEvent()" style="margin-top:0;font-size:13px;">✏️ Editar</button>
+      <button style="width:100%;padding:14px;background:var(--bg-surface);color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.15s;" onclick="shareCurrentEvent()">🔗 Compartir</button>
+    </div>
+    <button class="btn-danger" onclick="deleteCurrentEvent()" style="margin-top:10px;">🗑️ Eliminar</button>
+  </div>
+</div>
+
+<!-- USER MENU -->
+<div id="user-menu-overlay" onclick="handleUserMenuOverlayClick(event)">
+  <div class="user-menu-bg"></div>
+  <div class="user-menu-sheet">
+    <div style="width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 20px;"></div>
+    <img id="menu-avatar" class="user-menu-avatar" src="" alt=""/>
+    <div class="user-menu-name" id="menu-name">—</div>
+    <div class="user-menu-email" id="menu-email">—</div>
+    <button class="btn-signout" onclick="doSignOut()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- NOTIF PANEL -->
+<div id="notif-panel">
+  <div class="notif-bg" onclick="closeNotifPanel()"></div>
+  <div class="notif-sheet">
+    <div style="width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px;">Notificaciones</div>
+    <div id="notif-list"></div>
+  </div>
+</div>
+
+<!-- HISTORIAL PANEL -->
+<div id="historial-overlay" onclick="handleHistorialOverlayClick(event)" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:350;display:none;align-items:flex-end;">
+  <div id="historial-panel" style="width:100%;background:var(--bg-card);border-radius:28px 28px 0 0;border-top:1px solid var(--border-mid);padding:12px 20px 40px;transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);max-height:85dvh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:18px;font-weight:700;">Historial</div>
+      <div onclick="closeHistorial()" style="font-size:13px;color:var(--accent);cursor:pointer;">Cerrar</div>
+    </div>
+    <div id="historial-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, orderBy, query }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── FIREBASE CONFIG ────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAIH4aiDqfIXop2XEfTRWGnRwcUb7CHS18",
+  authDomain: "padelcalendar-b4528.firebaseapp.com",
+  projectId: "padelcalendar-b4528",
+  storageBucket: "padelcalendar-b4528.firebasestorage.app",
+  messagingSenderId: "463086749704",
+  appId: "1:463086749704:web:14dfc8e095626e430669bd"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth  = getAuth(fbApp);
+const db    = getFirestore(fbApp);
+
+// ── STATE ──────────────────────────────────────
+let currentUser = null;
+let unsubEvents = null;
+let events = [];
+let calViewDate = new Date();
+let selectedCalDate = null;
+let currentType = 'partido';
+let currentResult = 'pendiente';
+let currentEventId = null;
+let editingEventId = null;
+let notifStore = [];
+let turnoFijo = false;
+let currentCat = '';
+let currentModal = '';
+let currentSide = '';
+let socialSubTab = 'chat';
+
+const TYPES = {
+  partido:       { label:'Partido',      icon:'🏓', colorRaw:'#00E5A0' },
+  clase:         { label:'Clase',        icon:'🎓', colorRaw:'#4D9EFF' },
+  torneo:        { label:'Torneo',       icon:'🏆', colorRaw:'#FFB547' },
+  entrenamiento: { label:'Cancha Abierta', icon:'🎾', colorRaw:'#9B8BFF' },
+};
+
+// ── DATE UTILS ────────────────────────────────
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS_ES   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const dateKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayKey = () => dateKey(new Date());
+const parseDate = str => { const [y,m,d]=str.split('-').map(Number); return new Date(y,m-1,d); };
+const formatDate = str => { const d=parseDate(str); return `${DAYS_ES[d.getDay()]} ${d.getDate()} de ${MONTHS_ES[d.getMonth()]}`; };
+const formatShort = str => { const d=parseDate(str); return `${d.getDate()} ${MONTHS_ES[d.getMonth()].slice(0,3)}`; };
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const daysUntil = str => { const n=new Date(); n.setHours(0,0,0,0); return Math.round((parseDate(str)-n)/86400000); };
+const durationStr = (s,e) => { const a=s.split(':').map(Number),b=e.split(':').map(Number),d=(b[0]*60+b[1])-(a[0]*60+a[1]); if(d<=0)return''; const h=Math.floor(d/60),m=d%60; return h>0?`${h}h${m>0?m+'m':''}`:`${m}m`; };
+
+// ── AUTH ──────────────────────────────────────
+window.signInWithGoogle = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  } catch(e) { showToast('❌ Error al iniciar sesión'); console.error(e); }
+};
+
+window.doSignOut = async () => {
+  closeUserMenu();
+  if (unsubEvents) { unsubEvents(); unsubEvents = null; }
+  events = [];
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  if (user) {
+    // Logged in
+    document.getElementById('loading-overlay').classList.add('hidden');
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').style.display = '';
+    updateUserUI(user);
+    subscribeToEvents(user.uid);
+    setupHeaderDate();
+    setupCalNav();
+    setupDateInput();
+    requestNotifPermission();
+  } else {
+    // Logged out
+    document.getElementById('loading-overlay').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+async function updateUserUI(user) {
+  const avatarEl = document.getElementById('user-avatar');
+  const placeholderEl = document.getElementById('user-avatar-placeholder');
+  if (user.photoURL) {
+    avatarEl.src = user.photoURL;
+    avatarEl.style.display = '';
+    placeholderEl.style.display = 'none';
+  }
+  const menuAvatar = document.getElementById('menu-avatar');
+  if(menuAvatar) menuAvatar.src = user.photoURL || '';
+  const menuName = document.getElementById('menu-name');
+  if(menuName) menuName.textContent = user.displayName || 'Usuario';
+  const menuEmail = document.getElementById('menu-email');
+  if(menuEmail) menuEmail.textContent = user.email || '';
+  // Auto-crear perfil social si no existe
+  try {
+    const { doc:fsDoc2, getDoc:fsGetDoc, setDoc:fsSetDoc2 } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const profRef = fsDoc2(db, 'profiles', user.uid);
+    const profSnap = await fsGetDoc(profRef);
+    if(!profSnap.exists()) {
+      await fsSetDoc2(profRef, {
+        uid: user.uid, name: user.displayName||'', avatar: user.photoURL||'',
+        bio:'', category:'', side:'', hand:'', experience:'', racket:'', companion:'', whatsapp:'', youtube:[], updatedAt:Date.now()
+      });
+    }
+  } catch(e){ console.warn('Auto-perfil error:', e); }
+}
+
+// ── FIRESTORE ─────────────────────────────────
+function subscribeToEvents(uid) {
+  if (unsubEvents) unsubEvents();
+  const colRef = collection(db, 'users', uid, 'events');
+  const q = query(colRef, orderBy('createdAt', 'desc'));
+  unsubEvents = onSnapshot(q, snap => {
+    events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+    scheduleUpcomingNotifs();
+    pushStatsToProfile();
+  }, err => {
+    console.error('Firestore error:', err);
+    showToast('⚠️ Error al cargar datos');
+  });
+}
+
+async function fbSave(ev) {
+  if (!currentUser) return;
+  const ref = doc(db, 'users', currentUser.uid, 'events', ev.id);
+  await setDoc(ref, ev);
+}
+
+async function fbDelete(id) {
+  if (!currentUser) return;
+  const ref = doc(db, 'users', currentUser.uid, 'events', id);
+  await deleteDoc(ref);
+}
+
+// ── PUSH STATS TO PROFILE ────────────────────
+let _pushStatsTimer = null;
+function pushStatsToProfile() {
+  // Debounce: esperar 3s tras el último cambio antes de escribir
+  if(_pushStatsTimer) clearTimeout(_pushStatsTimer);
+  _pushStatsTimer = setTimeout(async () => {
+    if(!currentUser) return;
+    const tk = todayKey();
+    const now = new Date();
+    const w7  = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate()-7));
+    const m30 = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate()-30));
+    let totalMins=0, weekMins=0, monthMins=0;
+    events.forEach(e => {
+      if(e.date > tk || !e.timeStart || !e.timeEnd) return;
+      const s=e.timeStart.split(':').map(Number), en=e.timeEnd.split(':').map(Number);
+      const mins = Math.max(0,(en[0]*60+en[1])-(s[0]*60+s[1]));
+      totalMins += mins;
+      if(e.date >= w7)  weekMins  += mins;
+      if(e.date >= m30) monthMins += mins;
+    });
+    try {
+      const { doc:fsDoc2, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      await updateDoc(fsDoc2(db,'profiles',currentUser.uid), {
+        statsTotal: parseFloat((totalMins/60).toFixed(1)),
+        statsWeek:  parseFloat((weekMins/60).toFixed(1)),
+        statsMonth: parseFloat((monthMins/60).toFixed(1)),
+        statsUpdatedAt: Date.now()
+      });
+    } catch(e){ /* silent — puede fallar si el perfil aún no existe */ }
+  }, 3000);
+}
+
+// ── INIT HELPERS ──────────────────────────────
+function setupHeaderDate() {
+  // header-date removed from UI
+}
+function setupDateInput() {
+  document.getElementById('form-date').value = todayKey();
+}
+function setupCalNav() {
+  document.getElementById('cal-prev').onclick = () => { calViewDate.setMonth(calViewDate.getMonth()-1); renderCalendar(); };
+  document.getElementById('cal-next').onclick = () => { calViewDate.setMonth(calViewDate.getMonth()+1); renderCalendar(); };
+}
+
+// ── RENDER ────────────────────────────────────
+function renderAll() {
+  renderHome();
+  renderCalendar();
+  renderStats();
+}
+
+function renderHome() {
+  const now = new Date();
+  const tk = todayKey();
+  document.getElementById('today-full-date').textContent =
+    `${DAYS_ES[now.getDay()]}, ${now.getDate()} de ${MONTHS_ES[now.getMonth()]} ${now.getFullYear()}`;
+
+  const nowTime = now.getHours()*60 + now.getMinutes();
+  const todayEvs = events.filter(e => {
+    if (e.date !== tk) return false;
+    // Excluir si ya terminó
+    if (e.timeEnd) {
+      const [h,m] = e.timeEnd.split(':').map(Number);
+      if ((h*60+m) <= nowTime) return false;
+    }
+    return true;
+  });
+  const countEl = document.getElementById('today-events-count');
+  countEl.innerHTML = todayEvs.length > 0
+    ? `<div class="event-pill">🎾 ${todayEvs.length} Evento${todayEvs.length>1?'s':''} próximo${todayEvs.length>1?'s':''}</div>`
+    : `<div style="font-size:13px;color:var(--text-secondary)">Sin eventos para hoy</div>`;
+
+  const futureEvs = events.filter(e => e.date >= tk)
+    .sort((a,b) => a.date.localeCompare(b.date)||(a.timeStart||'').localeCompare(b.timeStart||''));
+
+
+
+  // Stats — 7 días, total eventos, 30 días
+  const now7 = new Date(); now7.setDate(now7.getDate()-7);
+  const sevenKey = dateKey(now7);
+  const now30 = new Date(); now30.setDate(now30.getDate()-30);
+  const thirtyKey = dateKey(now30);
+  let weekMins = 0, monthMins = 0;
+  events.forEach(e => {
+    if (e.timeStart && e.timeEnd && e.date <= tk) {
+      const s=e.timeStart.split(':').map(Number),en=e.timeEnd.split(':').map(Number);
+      const mins = Math.max(0,(en[0]*60+en[1])-(s[0]*60+s[1]));
+      if (e.date >= sevenKey) weekMins += mins;
+      if (e.date >= thirtyKey) monthMins += mins;
+    }
+  });
+  document.getElementById('stat-total').textContent = events.filter(e => e.date <= tk).length;
+  document.getElementById('stat-hours').textContent = (weekMins/60).toFixed(1)+'h';
+  document.getElementById('stat-hours30').textContent = (monthMins/60).toFixed(1)+'h';
+
+  // Upcoming list — solo próximos 7 días, excluir eventos ya terminados hoy
+  const in7days = new Date(); in7days.setDate(in7days.getDate()+7);
+  const next7Key = dateKey(in7days);
+  const upcoming = futureEvs.filter(e => {
+    if (e.date > next7Key) return false;
+    // Si es hoy y tiene hora de fin, excluir si ya terminó
+    if (e.date === tk && e.timeEnd) {
+      const [h,m] = e.timeEnd.split(':').map(Number);
+      if ((h*60+m) <= nowTime) return false;
+    }
+    return true;
+  });
+
+  const upEl = document.getElementById('upcoming-list');
+  if (!upcoming.length) {
+    upEl.innerHTML = `<div class="no-events"><div class="no-events-icon">🎾</div><div>Sin eventos en los próximos 7 días</div><div style="margin-top:4px;font-size:12px;color:var(--text-muted)">Tocá + para agregar uno</div></div>`;
+  } else {
+    // Agrupar por día con etiqueta inteligente
+    let lastDate = '', html2 = '';
+    upcoming.forEach(e => {
+      if (e.date !== lastDate) {
+        lastDate = e.date;
+        html2 += `<div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;padding:${html2?'12px':0} 4px 6px;">${dayGroupLabel(e.date, tk)}</div>`;
+      }
+      html2 += buildEventCard(e, false);
+    });
+    upEl.innerHTML = html2;
+  }
+}
+
+function dayGroupLabel(dateStr, tk) {
+  if (dateStr === tk) return 'Hoy';
+  const d = parseDate(dateStr);
+  const now2 = new Date(); now2.setHours(0,0,0,0);
+  const diffDays = Math.round((d - now2) / 86400000);
+  const dayName = DAYS_ES[d.getDay()];
+  if (diffDays === 1) return 'Mañana';
+  // "Este X" solo si el día de la semana aún no pasó en la semana actual
+  // La semana empieza el lunes (1). Hoy es now2.getDay() (0=dom..6=sáb)
+  const todayDow = now2.getDay(); // 0=dom,1=lun,...,6=sáb
+  const eventDow = d.getDay();
+  // Si diffDays <= 6 Y el día de semana del evento es posterior al de hoy → "Este X"
+  // Si diffDays <= 6 pero el día ya pasó esta semana (eventDow <= todayDow) → "Próximo X"
+  if (diffDays <= 6) {
+    if (eventDow > todayDow) return 'Este ' + dayName;
+    return 'Próximo ' + dayName;
+  }
+  return 'Próximo ' + dayName;
+}
+
+function buildEventCard(e, showDate) {
+  const t = TYPES[e.type]||TYPES.partido;
+  const rb = e.result==='ganado'
+    ? `<span class="badge" style="background:rgba(0,229,160,0.15);color:var(--accent)">Ganado</span>`
+    : e.result==='perdido'
+    ? `<span class="badge" style="background:var(--danger-dim);color:var(--danger)">Perdido</span>` : '';
+  const catBadge = e.category ? `<span class="badge" style="background:var(--accent2-dim);color:var(--accent2)">${e.category}</span>` : '';
+  const metaParts = [e.location||'—', rb, catBadge].filter(Boolean).join(' · ');
+  return `<div class="event-card" onclick="openEventDetail('${e.id}')">
+    <div class="event-card-accent" style="background:${t.colorRaw}"></div>
+    <div class="event-card-icon" style="background:${t.colorRaw}22">${t.icon}</div>
+    <div class="event-card-body">
+      <div class="event-card-title">${e.title}</div>
+      <div class="event-card-meta">${metaParts}</div>
+    </div>
+    <div class="event-card-right">
+      ${showDate?`<div class="event-card-time">${e.date===todayKey()?'Hoy':DAYS_ES[parseDate(e.date).getDay()]}</div>`:''}
+      <div class="event-card-time">${e.timeStart||'--:--'}</div>
+      ${e.timeStart&&e.timeEnd?`<div class="event-card-duration">${durationStr(e.timeStart,e.timeEnd)}</div>`:''}
+    </div>
+  </div>`;
+}
+
+
+// ── CALENDAR ──────────────────────────────────
+function renderCalendar() {
+  const y=calViewDate.getFullYear(), m=calViewDate.getMonth();
+  document.getElementById('cal-month-year').textContent = `${MONTHS_ES[m]} ${y}`;
+  const first=new Date(y,m,1), last=new Date(y,m+1,0), startDow=first.getDay();
+  const evByDate={};
+  events.forEach(e => { if(!evByDate[e.date]) evByDate[e.date]=[]; evByDate[e.date].push(e); });
+  const tk=todayKey(); let html='';
+  for(let i=0;i<startDow;i++) { const d=new Date(y,m,-(startDow-1-i)); html+=calDayHtml(d.getDate(),dateKey(d),true,evByDate[dateKey(d)]||[],tk); }
+  for(let d=1;d<=last.getDate();d++) { const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; html+=calDayHtml(d,key,false,evByDate[key]||[],tk); }
+  const total=startDow+last.getDate(), rem=total%7===0?0:7-total%7;
+  for(let i=1;i<=rem;i++) { const d=new Date(y,m+1,i); html+=calDayHtml(i,dateKey(d),true,evByDate[dateKey(d)]||[],tk); }
+  const grid=document.getElementById('cal-days'); grid.innerHTML=html;
+  grid.querySelectorAll('.cal-day').forEach(el => {
+    el.addEventListener('click',()=>{ selectedCalDate=el.dataset.date; document.querySelectorAll('.cal-day').forEach(x=>x.classList.remove('selected')); el.classList.add('selected'); renderDayDetail(selectedCalDate); });
+  });
+  const sel = selectedCalDate || tk;
+  const selEl = grid.querySelector(`[data-date="${sel}"]`);
+  if (selEl) { selEl.classList.add('selected'); renderDayDetail(sel); }
+}
+function calDayHtml(n,key,other,dayEvs,tk) {
+  let cls='cal-day'+(other?' other-month':'')+(key===tk?' today':'');
+  const dots=dayEvs.slice(0,3).map(e=>`<div class="cal-dot" style="background:${(TYPES[e.type]||TYPES.partido).colorRaw}"></div>`).join('');
+  return `<div class="${cls}" data-date="${key}"><div class="cal-day-num">${n}</div>${dots?`<div class="cal-day-dots">${dots}</div>`:''}</div>`;
+}
+function renderDayDetail(dateStr) {
+  const dayEvs=events.filter(e=>e.date===dateStr).sort((a,b)=>(a.timeStart||'').localeCompare(b.timeStart||''));
+  document.getElementById('day-detail-title').textContent = dateStr===todayKey()?'Hoy':formatDate(dateStr);
+  const el=document.getElementById('day-detail-events');
+  el.innerHTML = dayEvs.length
+    ? `<div class="day-events">${dayEvs.map(e=>{const t=TYPES[e.type]||TYPES.partido;return`<div class="day-event-item" onclick="openEventDetail('${e.id}')"><div class="day-event-dot" style="background:${t.colorRaw}"></div><div class="day-event-text"><div class="day-event-name">${e.title}</div><div class="day-event-time">${e.timeStart||''}${e.timeEnd?' - '+e.timeEnd:''} ${e.location?'· '+e.location:''}</div></div><div class="day-event-arrow">›</div></div>`;}).join('')}</div>`
+    : `<div class="day-detail-empty">📭 Sin eventos este día</div>`;
+}
+
+
+// ── STATS ─────────────────────────────────────
+function renderStats() {
+  const el=document.getElementById('stats-content');
+  if(!events.length){el.innerHTML=`<div class="no-events"><div class="no-events-icon">📊</div><div>Cargá eventos para ver tus stats</div></div>`;return;}
+  let totalMins=0;
+  const typeCount={partido:0,clase:0,torneo:0,entrenamiento:0};
+  let wins=0,losses=0;
+  const tk_s=todayKey();
+  events.forEach(e=>{
+    // Contar solo eventos pasados y de hoy para stats
+    const isPast = e.date <= tk_s;
+    if(isPast) typeCount[e.type]=(typeCount[e.type]||0)+1;
+    if(isPast && e.timeStart&&e.timeEnd){const s=e.timeStart.split(':').map(Number),en=e.timeEnd.split(':').map(Number);totalMins+=Math.max(0,(en[0]*60+en[1])-(s[0]*60+s[1]));}
+    if(isPast && e.result==='ganado')wins++;
+    if(isPast && e.result==='perdido')losses++;
+  });
+  const totalH=(totalMins/60).toFixed(1),totalP=typeCount.partido||0;
+  const amistosos=Math.max(0,totalP-wins-losses);
+  const wr=totalP>0?Math.round(wins/Math.max(wins+losses,1)*100):0;
+  const monthly={}, monthlyMins={};
+  for(let i=5;i>=0;i--){
+    const d=new Date();d.setMonth(d.getMonth()-i);
+    const mk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthly[mk]=0; monthlyMins[mk]=0;
+  }
+  events.forEach(e=>{
+    if(e.date>tk_s) return; // solo pasados y hoy
+    const k=e.date.slice(0,7);
+    if(k in monthly) monthly[k]++;
+    if(k in monthlyMins && e.timeStart && e.timeEnd){
+      const s=e.timeStart.split(':').map(Number),en=e.timeEnd.split(':').map(Number);
+      monthlyMins[k]+=Math.max(0,(en[0]*60+en[1])-(s[0]*60+s[1]));
+    }
+  });
+  // toggle entre eventos y horas por mes
+  let showMonthlyHours = false;
+  const maxM=Math.max(...Object.values(monthly),1);
+  const mLabels=Object.keys(monthly).map(k=>MONTHS_ES[parseInt(k.split('-')[1])-1].slice(0,3));
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div class="big-stat-card" style="flex-direction:column;align-items:flex-start;gap:6px;"><div class="big-stat-icon" style="background:var(--accent-dim);width:40px;height:40px;font-size:20px;">⏱️</div><div class="big-stat-value" style="font-size:22px;color:var(--accent)">${totalH}h</div><div class="big-stat-label">Horas totales</div></div>
+      <div class="big-stat-card" style="flex-direction:column;align-items:flex-start;gap:6px;"><div class="big-stat-icon" style="background:var(--warn-dim);width:40px;height:40px;font-size:20px;">🏆</div><div class="big-stat-value" style="font-size:22px;color:var(--warn)">${wr}%</div><div class="big-stat-label">Win rate</div></div>
+    </div>
+    <div class="type-breakdown">${Object.entries(typeCount).filter(([,v])=>v>0).map(([k,v])=>{const t=TYPES[k];const lbl = k==='partido' ? (v!==1?'Partidos jugados':'Partido jugado') : (t.label+(v!==1?'s':''));
+        return`<div class="type-stat"><div class="type-stat-icon">${t.icon}</div><div class="type-stat-num" style="color:${t.colorRaw}">${v}</div><div class="type-stat-label">${lbl}</div></div>`;}).join('')}</div>
+    <div class="chart-bar-container" id="chart-container">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="chart-bar-title" style="margin-bottom:0">Actividad mensual</div>
+        <div id="chart-toggle-btn" onclick="toggleMonthlyChart()" style="font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;background:var(--accent-dim);border:1px solid rgba(0,229,160,0.2);border-radius:20px;padding:4px 10px;">Ver horas</div>
+      </div>
+      <div id="chart-bars">
+        ${Object.entries(monthly).map(([k,v],i)=>{
+          const hrs=(monthlyMins[k]/60).toFixed(1);
+          return `<div class="chart-bar-row">
+            <div class="chart-bar-label">${mLabels[i]}</div>
+            <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${v/maxM*100}%;background:var(--accent)"></div></div>
+            <div class="chart-bar-val chart-val-eventos">${v}</div>
+            <div class="chart-bar-val chart-val-horas" style="display:none">${hrs}h</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="big-stat-card" style="gap:12px;"><div class="big-stat-icon" style="background:var(--accent2-dim);font-size:22px;">✅</div><div style="display:flex;gap:16px;align-items:baseline"><div><div style="font-size:20px;font-weight:700;color:var(--accent)">${wins}</div><div class="big-stat-label">Ganados</div></div><div><div style="font-size:20px;font-weight:700;color:var(--danger)">${losses}</div><div class="big-stat-label">Perdidos</div></div><div><div style="font-size:20px;font-weight:700;color:var(--warn)">${amistosos}</div><div class="big-stat-label">Amistosos</div></div></div></div>`;
+}
+
+// ── CHART TOGGLE ──────────────────────────────
+window.toggleMonthlyChart = () => {
+  const btn = document.getElementById('chart-toggle-btn');
+  const evEls = document.querySelectorAll('.chart-val-eventos');
+  const hrEls = document.querySelectorAll('.chart-val-horas');
+  const fills = document.querySelectorAll('.chart-bar-fill');
+  const isHours = btn.textContent.trim() === 'Ver eventos';
+  if(isHours) {
+    // Volver a eventos
+    evEls.forEach(el=>el.style.display='');
+    hrEls.forEach(el=>el.style.display='none');
+    btn.textContent='Ver horas';
+    fills.forEach(el=>el.style.background='var(--accent)');
+  } else {
+    // Mostrar horas
+    evEls.forEach(el=>el.style.display='none');
+    hrEls.forEach(el=>el.style.display='');
+    btn.textContent='Ver eventos';
+    fills.forEach(el=>el.style.background='var(--accent2)');
+  }
+};
+
+// ── TAB ───────────────────────────────────────
+window.switchTab = tab => {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`view-${tab}`).classList.add('active');
+  document.getElementById(`nav-${tab}`).classList.add('active');
+  if(tab==='calendar') renderCalendar();
+  if(tab==='stats') renderStats();
+  if(tab==='social') renderSocial();
+};
+
+// ── MODAL ─────────────────────────────────────
+window.openModal = (prefillDate) => {
+  editingEventId=null; currentType='partido'; currentResult='pendiente';
+  document.getElementById('modal-title-text').textContent='Nuevo Evento';
+  turnoFijo=false; currentCat=''; currentModal=''; currentSide=''; updateTurnoFijoUI();
+  updateCatUI(); updateModalUI();
+  document.querySelectorAll('#side-Drive,#side-Reves,#side-Ambos').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('group-result').style.display='none';
+  document.getElementById('group-profesor').style.display='none';
+  const gm=document.getElementById('group-modalidad'); if(gm) gm.style.display='';
+  window._computedEndTime=null; window._endNextDay=false;
+  const disp=document.getElementById('time-end-display'); if(disp) disp.style.display='none';
+  document.getElementById('form-date').value=prefillDate||todayKey();
+  document.getElementById('form-time-start').value='';
+  const durSel=document.getElementById('form-duration'); if(durSel) durSel.value='';
+  document.getElementById('form-location').value='';
+  const compEl2=document.getElementById('form-companion'); if(compEl2) compEl2.value='';
+  const profEl2=document.getElementById('form-profesor'); if(profEl2) profEl2.value='';
+  document.getElementById('form-reminder').value='30';
+  updateTypeUI(); updateResultUI();
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('modal').classList.add('open'),10);
+};
+window.handleOverlayClick = e => { if(e.target===document.getElementById('modal-overlay')) closeModal(); };
+function closeModal() { document.getElementById('modal').classList.remove('open'); setTimeout(()=>document.getElementById('modal-overlay').classList.remove('open'),350); }
+
+window.selectType = t => {
+  currentType=t; updateTypeUI();
+  const gp = document.getElementById('group-profesor');
+  if(gp) gp.style.display = (t==='clase') ? '' : 'none';
+  const gm = document.getElementById('group-modalidad');
+  if(gm) gm.style.display = (t==='clase') ? 'none' : '';
+};
+
+window.calcEndTime = () => {
+  const startEl = document.getElementById('form-time-start');
+  const durEl   = document.getElementById('form-duration');
+  const display = document.getElementById('time-end-display');
+  const label   = document.getElementById('time-end-label');
+  if(!startEl||!durEl||!startEl.value||!durEl.value) { if(display) display.style.display='none'; return; }
+  const [h,m] = startEl.value.split(':').map(Number);
+  const dur = parseInt(durEl.value);
+  const endMins = h*60+m+dur;
+  const endH = Math.floor(endMins/60)%24;
+  const endM = endMins%60;
+  const endStr = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+  if(display) { display.style.display=''; label.textContent = endStr + (endMins>=1440?' (día siguiente)':''); }
+  // Guardar en hidden field
+  window._computedEndTime = endStr;
+  window._endNextDay = endMins >= 1440;
+};
+
+window.selectModal = m => { currentModal = (currentModal===m) ? '' : m; updateModalUI(); };
+function updateModalUI() {
+  document.querySelectorAll('#modal-Mixta,#modal-Hombres,#modal-Damas').forEach(el=>el.classList.remove('selected'));
+  if(currentModal) document.getElementById('modal-'+currentModal)?.classList.add('selected');
+}
+
+window.selectSide = s => {
+  currentSide = (currentSide===s) ? '' : s;
+  document.querySelectorAll('#side-Drive,#side-Reves,#side-Ambos').forEach(el=>el.classList.remove('selected'));
+  if(currentSide) document.getElementById('side-'+currentSide)?.classList.add('selected');
+};
+
+window.filterProfesorSuggestions = val => {
+  const box = document.getElementById('profesor-suggestions');
+  if(!val.trim()) { box.style.display='none'; return; }
+  const profs = getKnownProfesores().filter(p=>p.toLowerCase().includes(val.toLowerCase()));
+  if(!profs.length) { box.style.display='none'; return; }
+  box.style.display='';
+  box.innerHTML = profs.slice(0,4).map(p=>`<div class="club-suggestion-item" onclick="pickProfesor('${p.replace(/'/g,"\'")}')">${p}</div>`).join('');
+};
+window.pickProfesor = name => {
+  document.getElementById('form-profesor').value=name;
+  document.getElementById('profesor-suggestions').style.display='none';
+};
+function getKnownProfesores() {
+  const set=new Set();
+  events.filter(e=>e.type==='clase'&&e.profesor).forEach(e=>set.add(e.profesor.trim()));
+  return [...set].sort();
+}
+
+window.toggleTurnoFijo = () => { turnoFijo=!turnoFijo; updateTurnoFijoUI(); };
+function updateTurnoFijoUI() {
+  const tog=document.getElementById('turno-fijo-toggle');
+  const thumb=document.getElementById('turno-fijo-thumb');
+  if(!tog||!thumb) return;
+  if(turnoFijo){
+    tog.style.background='var(--accent)'; thumb.style.left='22px'; thumb.style.background='#0A0F1E';
+  } else {
+    tog.style.background='var(--bg-elevated)'; thumb.style.left='2px'; thumb.style.background='var(--text-muted)';
+  }
+}
+function updateTypeUI() {
+  document.querySelectorAll('.type-option').forEach(el=>el.classList.remove('selected'));
+  document.getElementById(`type-${currentType}`)?.classList.add('selected');
+}
+window.selectResult = r => { currentResult=r; updateResultUI(); };
+
+window.selectCat = c => { currentCat = (currentCat===c) ? '' : c; updateCatUI(); };
+function updateCatUI() {
+  document.querySelectorAll('.cat-option').forEach(el=>el.classList.remove('selected'));
+  if(currentCat) document.getElementById('cat-'+currentCat)?.classList.add('selected');
+}
+
+window.filterClubSuggestions = val => {
+  const box = document.getElementById('club-suggestions');
+  if(!val.trim()) { box.style.display='none'; return; }
+  const clubs = getKnownClubs().filter(c=>c.toLowerCase().includes(val.toLowerCase()) && c.toLowerCase()!==val.toLowerCase());
+  if(!clubs.length) { box.style.display='none'; return; }
+  box.style.display='';
+  box.innerHTML = clubs.slice(0,5).map(c=>`<div class="club-suggestion-item" onclick="pickClub('${c.replace(/'/g,"\'")}')">${c}</div>`).join('');
+};
+window.pickClub = name => {
+  document.getElementById('form-location').value = name;
+  document.getElementById('club-suggestions').style.display='none';
+};
+function getKnownClubs() {
+  const set = new Set();
+  events.forEach(e => { if(e.location && e.location.trim()) set.add(e.location.trim()); });
+  return [...set].sort();
+}
+function updateResultUI() {
+  document.querySelectorAll('.result-option').forEach(el=>el.classList.remove('selected'));
+  document.getElementById(`res-${currentResult}`)?.classList.add('selected');
+}
+
+window.saveEvent = async () => {
+  const typeLabels = {partido:'Partido',clase:'Clase',torneo:'Torneo',entrenamiento:'Cancha Abierta'};
+  const baseTitle = typeLabels[currentType] || 'Evento';
+  const modalSuffix = currentModal ? ' ' + currentModal : '';
+  const title = baseTitle + modalSuffix;
+  const date=document.getElementById('form-date').value;
+  if(!date){showToast('⚠️ Seleccioná una fecha');return;}
+  const startVal = document.getElementById('form-time-start').value;
+  const endVal = window._computedEndTime || '';
+  const companion = document.getElementById('form-companion')?.value.trim()||'';
+  const profesorEl = document.getElementById('form-profesor');
+  const profesor = currentType==='clase' ? (profesorEl?.value.trim()||'') : '';
+  const ev = {
+    id: editingEventId||uid(), type:currentType, title, date, category:currentCat,
+    modalidad:currentModal, companion, companionSide:currentSide, profesor,
+    timeStart:startVal,
+    timeEnd:endVal,
+    location:document.getElementById('form-location').value.trim(),
+    result:currentResult,
+    notes:'',
+    reminder:parseInt(document.getElementById('form-reminder').value),
+    createdAt:Date.now(),
+  };
+  try {
+    if (turnoFijo) {
+      const saves=[];
+      for(let w=0;w<12;w++){
+        const d=parseDate(date); d.setDate(d.getDate()+w*7);
+        saves.push(fbSave({...ev, id:w===0?ev.id:uid(), date:dateKey(d), turnoFijoId:ev.id, createdAt:Date.now()}));
+      }
+      await Promise.all(saves);
+      closeModal(); showToast('🔁 Turno fijo — 12 semanas creadas');
+    } else {
+      await fbSave(ev); closeModal(); showToast('🎾 Evento guardado');
+    }
+  } catch(e) { showToast('❌ Error al guardar'); console.error(e); }
+};
+
+// ── EVENT DETAIL ──────────────────────────────
+window.openEventDetail = id => {
+  const e=events.find(ev=>ev.id===id); if(!e) return;
+  currentEventId=id;
+  const t=TYPES[e.type]||TYPES.partido;
+  const rs=e.result==='ganado'?'✅ Ganado':e.result==='perdido'?'❌ Perdido':'🤝 Amistoso';
+  const showResult = e.date < todayKey(); // solo mostrar resultado si el evento ya pasó
+  document.getElementById('event-detail-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="detail-type-badge" style="background:${t.colorRaw}22;color:${t.colorRaw};border:1px solid ${t.colorRaw}44;margin-bottom:0">${t.icon} ${t.label}</div>
+      ${e.category?`<span style="background:var(--accent2-dim);color:var(--accent2);border:1px solid rgba(77,158,255,0.2);border-radius:50px;padding:4px 10px;font-size:11px;font-weight:700;">${e.category}</span>`:''}
+    </div>
+    <div class="detail-title">${e.title}</div>
+    <div class="detail-date">${formatDate(e.date)}</div>
+    <div class="detail-row"><div class="detail-row-icon">🕐</div><div class="detail-row-text"><div class="detail-row-label">Horario</div><div class="detail-row-val">${e.timeStart||'--'} ${e.timeEnd?' - '+e.timeEnd:''} ${e.timeStart&&e.timeEnd?'('+durationStr(e.timeStart,e.timeEnd)+')':''}</div></div></div>
+    ${e.location?`<div class="detail-row"><div class="detail-row-icon">📍</div><div class="detail-row-text"><div class="detail-row-label">Club</div><div class="detail-row-val">${e.location}</div></div></div>`:''}
+    ${e.opponents?`<div class="detail-row"><div class="detail-row-icon">👥</div><div class="detail-row-text"><div class="detail-row-label">Jugadores</div><div class="detail-row-val">${e.opponents}</div></div></div>`:''}
+    ${showResult?`<div class="detail-row"><div class="detail-row-icon">📊</div><div class="detail-row-text"><div class="detail-row-label">Resultado</div><div class="detail-row-val">${rs}</div></div></div>`:''}
+    ${e.companion?`<div class="detail-row"><div class="detail-row-icon">🤝</div><div class="detail-row-text"><div class="detail-row-label">Compañero</div><div class="detail-row-val">${e.companion}${e.companionSide?' · '+e.companionSide:''}</div></div></div>`:''}
+    ${e.profesor?`<div class="detail-row"><div class="detail-row-icon">🎓</div><div class="detail-row-text"><div class="detail-row-label">Profesor/a</div><div class="detail-row-val">${e.profesor}</div></div></div>`:''}
+    ${e.modalidad?`<div class="detail-row"><div class="detail-row-icon">👥</div><div class="detail-row-text"><div class="detail-row-label">Modalidad</div><div class="detail-row-val">${e.modalidad}</div></div></div>`:''}
+    ${e.notes?`<div class="detail-row"><div class="detail-row-icon">📝</div><div class="detail-row-text"><div class="detail-row-label">Notas</div><div class="detail-row-val">${e.notes}</div></div></div>`:''}
+    ${e.reminder>0?`<div class="detail-row"><div class="detail-row-icon">🔔</div><div class="detail-row-text"><div class="detail-row-label">Recordatorio</div><div class="detail-row-val">${e.reminder>=2880?'2 días antes':e.reminder>=1440?'1 día antes':e.reminder>=60?(e.reminder/60)+'h antes':e.reminder+'min antes'}</div></div></div>`:''}`;
+  document.getElementById('event-detail-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('event-detail-panel').classList.add('open'),10);
+};
+window.handleDetailOverlayClick = e => { if(e.target===document.getElementById('event-detail-overlay')) closeEventDetail(); };
+function closeEventDetail() { document.getElementById('event-detail-panel').classList.remove('open'); setTimeout(()=>document.getElementById('event-detail-overlay').classList.remove('open'),350); }
+window.shareCurrentEvent = async () => {
+  const e = events.find(ev => ev.id === currentEventId);
+  if(!e || !currentUser) return;
+  // Mostrar panel de selección de destinatario
+  showSharePanel(e);
+};
+
+let _shareEvent = null;
+window.showSharePanel = (e) => {
+  _shareEvent = e;
+  // Cargar jugadores
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(({ collection:fsCol, getDocs }) => {
+    getDocs(fsCol(db,'profiles')).then(snap => {
+      const players = snap.docs.map(d=>d.data()).filter(p=>p.uid !== currentUser.uid);
+      const panelHtml = `
+        <div id="share-overlay" onclick="if(event.target===this)closeSharePanel()" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;display:flex;align-items:flex-end;backdrop-filter:blur(4px);">
+          <div style="width:100%;background:var(--bg-card);border-radius:28px 28px 0 0;padding:16px 20px 40px;max-height:70dvh;overflow-y:auto;">
+            <div style="width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 16px;"></div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:4px;">Compartir evento</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">${e.title} · ${formatDate(e.date)}</div>
+            <div onclick="doShareEvent(null)" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--accent-dim);border:1px solid rgba(0,229,160,0.2);border-radius:var(--radius-md);cursor:pointer;margin-bottom:10px;">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;">🌐</div>
+              <div><div style="font-weight:600;font-size:14px;">Global</div><div style="font-size:12px;color:var(--text-secondary);">Invitar a todos en el chat</div></div>
+            </div>
+            ${players.length ? players.map(p=>`
+              <div onclick="doShareEvent('${p.uid}','${(p.name||'').replace(/'/g,"\'")}','${(p.avatar||'').replace(/'/g,"\'")}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;margin-bottom:8px;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--bg-elevated);overflow:hidden;flex-shrink:0;">${p.avatar?`<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover;">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;">👤</div>'}</div>
+                <div><div style="font-weight:600;font-size:14px;">${p.name||'Jugador'}</div><div style="font-size:12px;color:var(--text-secondary);">${p.category||''} ${p.side||''}</div></div>
+              </div>`).join('') : '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">No hay otros jugadores registrados aún</div>'}
+          </div>
+        </div>`;
+      document.body.insertAdjacentHTML('beforeend', panelHtml);
+    });
+  });
+};
+window.closeSharePanel = () => { document.getElementById('share-overlay')?.remove(); };
+window.doShareEvent = async (toUid, toName, toAvatar) => {
+  closeSharePanel();
+  closeEventDetail();
+  const e = _shareEvent; if(!e) return;
+  try {
+    const { collection:fsCol, addDoc, doc:fsDoc2, setDoc:fsSetDoc2, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    if(!toUid) {
+      // Global — guardamos datos del evento para que otros puedan aceptar
+      // IMPORTANTE: el campo "uid" es requerido por la regla de Firestore (uid == request.auth.uid)
+      await addDoc(fsCol(db,'globalChat'), {
+        type:'invite',
+        uid:currentUser.uid,
+        text:`${currentUser.displayName||'Alguien'} invitó a todos a un evento 🎾`,
+        eventTitle:e.title, eventDate:e.date, eventType:e.type,
+        eventTimeStart:e.timeStart||'', eventLocation:e.location||'',
+        eventData: JSON.stringify(e),
+        fromUid:currentUser.uid, fromName:currentUser.displayName||'',
+        name:currentUser.displayName||'', avatar:currentUser.photoURL||'',
+        createdAt:serverTimestamp()
+      });
+      showToast('🌐 Invitación global enviada al chat');
+    } else {
+      // Privado — notif directa al usuario, sin postear en chat global
+      const notifId = toUid + '_' + e.id;
+      await fsSetDoc2(fsDoc2(db,'notifications', notifId), {
+        toUid, fromUid:currentUser.uid, fromName:currentUser.displayName||'',
+        fromAvatar:currentUser.photoURL||'',
+        eventTitle:e.title, eventDate:e.date, eventType:e.type,
+        eventTimeStart:e.timeStart||'', eventLocation:e.location||'',
+        eventData: JSON.stringify(e),
+        read:false, createdAt:serverTimestamp()
+      });
+      showToast('✅ Invitación enviada a ' + toName);
+    }
+  } catch(err){ showToast('❌ Error al compartir'); console.error(err); }
+};
+
+window.deleteCurrentEvent = async () => {
+  if(!currentEventId) return;
+  try { await fbDelete(currentEventId); closeEventDetail(); showToast('🗑️ Evento eliminado'); }
+  catch(e) { showToast('❌ Error al eliminar'); }
+};
+
+window.editCurrentEvent = () => {
+  const e = events.find(ev => ev.id === currentEventId);
+  if (!e) return;
+  closeEventDetail();
+  setTimeout(() => {
+    editingEventId = e.id;
+    turnoFijo = false; updateTurnoFijoUI();
+    currentType = e.type;
+    currentResult = e.result || 'pendiente';
+    document.getElementById('modal-title-text').textContent = 'Editar Evento';
+    document.getElementById('form-date').value = e.date || todayKey();
+    document.getElementById('form-time-start').value = e.timeStart || '';
+    // Calcular duración para el selector
+    if(e.timeStart && e.timeEnd) {
+      const [sh,sm]=e.timeStart.split(':').map(Number),[eh,em]=e.timeEnd.split(':').map(Number);
+      let dur=(eh*60+em)-(sh*60+sm); if(dur<0) dur+=1440;
+      const durSel=document.getElementById('form-duration');
+      if(durSel){ durSel.value=String(dur); window._computedEndTime=e.timeEnd; }
+      const disp=document.getElementById('time-end-display');
+      const lbl=document.getElementById('time-end-label');
+      if(disp&&lbl){ disp.style.display=''; lbl.textContent=e.timeEnd; }
+    }
+    document.getElementById('form-location').value = e.location || '';
+    document.getElementById('form-reminder').value = e.reminder || 0;
+    currentCat = e.category || ''; updateCatUI();
+    currentModal = e.modalidad || ''; updateModalUI();
+    currentSide = e.companionSide || '';
+    selectSide(currentSide);
+    const compEl=document.getElementById('form-companion'); if(compEl) compEl.value=e.companion||'';
+    const profEl=document.getElementById('form-profesor'); if(profEl) profEl.value=e.profesor||'';
+    const gp=document.getElementById('group-profesor'); if(gp) gp.style.display=(e.type==='clase')?'':'none';
+    updateTypeUI();
+    updateResultUI();
+    document.getElementById('group-result').style.display='';
+    document.getElementById('modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('modal').classList.add('open'), 10);
+  }, 400);
+};
+
+// ── USER MENU ─────────────────────────────────
+window.openUserMenu = () => document.getElementById('user-menu-overlay').classList.add('open');
+window.closeUserMenu = () => document.getElementById('user-menu-overlay').classList.remove('open');
+window.handleUserMenuOverlayClick = e => { if(e.target===document.getElementById('user-menu-overlay')||e.target.classList.contains('user-menu-bg')) closeUserMenu(); };
+
+// ── PROFILE PANEL (perfil + notificaciones) ──
+window.openProfilePanel = async () => {
+  // Load private notifications
+  let privateNotifs = [];
+  try {
+    const fb = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const qn = fb.query(fb.collection(db,'notifications'), fb.where('toUid','==',currentUser.uid), fb.where('read','==',false));
+    const snapN = await fb.getDocs(qn);
+    privateNotifs = snapN.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(err){ console.warn('notif load error',err); }
+
+  // Build private notif HTML
+  let privHtml = '';
+  if(privateNotifs.length) {
+    let rows = '';
+    privateNotifs.forEach(n => {
+      let evData = null;
+      try { if(n.eventData) evData = JSON.parse(n.eventData); } catch(e){}
+      let btn = '';
+      if(evData) {
+        inviteCounter++;
+        const k = 'inv_' + inviteCounter;
+        inviteDataMap[k] = evData;
+        btn = '<button onclick="closeProfilePanel();acceptEventInvite(\'' + k + '\')" style="margin-top:6px;padding:7px 12px;background:#00E5A0;color:#0A0F1E;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;">✅ Agregar a mi calendario</button>';
+      }
+      rows += '<div style="margin-bottom:8px;">'
+        + '<div style="font-size:13px;font-weight:500;">🎾 ' + (n.fromName||'Alguien') + ' te invitó</div>'
+        + '<div style="font-size:12px;color:#8896B3;margin-top:2px;">' + (n.eventTitle||'') + (n.eventDate ? ' · ' + formatDate(n.eventDate) : '') + '</div>'
+        + btn + '</div>';
+    });
+    privHtml = '<div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.2);border-radius:14px;padding:12px 14px;margin-bottom:12px;">'
+      + '<div style="font-size:11px;color:#00E5A0;font-weight:600;letter-spacing:0.5px;margin-bottom:8px;">EVENTOS COMPARTIDOS CONTIGO</div>'
+      + rows + '</div>';
+  }
+
+  // Build notif store HTML
+  let notifHtml = '';
+  if(notifStore.length > 0) {
+    const n = notifStore[0];
+    const col = (TYPES[n.type]||TYPES.partido).colorRaw;
+    notifHtml = '<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:12px;">'
+      + '<div style="font-size:11px;color:var(--text-secondary);font-weight:600;letter-spacing:0.5px;margin-bottom:8px;">PRÓXIMA NOTIFICACIÓN</div>'
+      + '<div style="display:flex;gap:10px;align-items:flex-start;">'
+      + '<div style="width:8px;height:8px;border-radius:50%;background:' + col + ';margin-top:4px;flex-shrink:0;"></div>'
+      + '<div><div style="font-size:13px;font-weight:500;">' + n.title + '</div>'
+      + '<div style="font-size:11px;color:var(--text-secondary);margin-top:1px;">' + n.sub + '</div></div></div></div>';
+  }
+
+  const avatarHtml = currentUser && currentUser.photoURL
+    ? '<img src="' + currentUser.photoURL + '" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #00E5A0;">'
+    : '<div style="width:56px;height:56px;border-radius:50%;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid #00E5A0;">👤</div>';
+
+  const sheet = document.createElement('div');
+  sheet.id = 'profile-panel-overlay';
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:flex-end;';
+  const inner = document.createElement('div');
+  inner.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.5);';
+  inner.onclick = closeProfilePanel;
+  sheet.appendChild(inner);
+  const panel = document.createElement('div');
+  panel.style.cssText = 'position:relative;width:100%;background:var(--bg-card);border-radius:28px 28px 0 0;padding:12px 20px 40px;max-height:85dvh;overflow-y:auto;z-index:1;';
+  panel.innerHTML = '<div style="width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 20px;"></div>'
+    + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">'
+    + avatarHtml
+    + '<div><div style="font-size:16px;font-weight:700;">' + ((currentUser&&currentUser.displayName)||'Jugador') + '</div>'
+    + '<div style="font-size:12px;color:var(--text-secondary);">' + ((currentUser&&currentUser.email)||'') + '</div></div></div>'
+    + privHtml + notifHtml
+    + '<div style="display:flex;flex-direction:column;gap:10px;">'
+    + '<div id="pp-edit-profile-btn" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;">'
+    + '<span style="font-size:20px;">👤</span><div style="font-size:14px;font-weight:500;">Editar perfil social</div>'
+    + '<span style="margin-left:auto;color:var(--text-muted);">›</span></div>'
+    + '<button id="pp-signout-btn" style="width:100%;padding:14px;background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border);border-radius:20px;font-family:Sora,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">Cerrar sesión</button>'
+    + '</div>';
+  sheet.appendChild(panel);
+  document.body.appendChild(sheet);
+  // Attach events after DOM insertion
+  document.getElementById('pp-edit-profile-btn').onclick = () => { closeProfilePanel(); switchTab('social'); setTimeout(()=>{ socialSubTab='profile'; renderSocial(); },150); };
+  document.getElementById('pp-signout-btn').onclick = () => { closeProfilePanel(); doSignOut(); };
+};
+window.closeProfilePanel = () => { document.getElementById('profile-panel-overlay')?.remove(); };
+window.setSocialAndProfile = () => { switchTab('social'); setTimeout(()=>{ socialSubTab='profile'; renderSocial(); },100); };
+
+
+window.openNotifPanel = () => { renderNotifPanel(); document.getElementById('notif-panel').classList.add('open'); };
+window.closeNotifPanel = () => document.getElementById('notif-panel').classList.remove('open');
+function renderNotifPanel() {
+  const el=document.getElementById('notif-list');
+  // Mostrar solo la próxima notificación (el primer elemento de notifStore)
+  const item = notifStore.length ? notifStore[0] : null;
+  if(item) {
+    const t=TYPES[item.type]||TYPES.partido;
+    el.innerHTML=`<div class="notif-item"><div class="notif-dot-big" style="background:${t.colorRaw}"></div><div class="notif-text"><div class="notif-title">${item.title}</div><div class="notif-sub">${item.sub}</div></div><div class="notif-time">${item.when}</div></div>`;
+  } else {
+    el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Sin notificaciones próximas</div>`;
+  }
+}
+
+// ── SOCIAL ────────────────────────────────────
+let chatUnsub = null;
+const playerCache = {};
+let socialProfile = {};
+
+function renderSocial() {
+  const el = document.getElementById('social-content');
+  el.innerHTML = `
+    <div class="social-tabs" style="margin-top:0;">
+      <div class="social-tab ${socialSubTab==='chat'?'active':''}" onclick="setSocialTab('chat')">💬 Chat</div>
+      <div class="social-tab ${socialSubTab==='players'?'active':''}" onclick="setSocialTab('players')">👥 Jugadores</div>
+    </div>
+    <div id="social-sub"></div>
+  `;
+  renderSocialSub();
+}
+
+window.setSocialTab = tab => { socialSubTab=tab; renderSocial(); };
+
+function renderSocialSub() {
+  const el = document.getElementById('social-sub');
+  if(!el) return;
+  if(socialSubTab==='chat') renderChat(el);
+  else if(socialSubTab==='players') renderPlayers(el);
+  else renderProfile(el);
+}
+
+// ─── CHAT ───
+async function renderChat(el) {
+  el.innerHTML = `
+    <div id="chat-messages" class="chat-messages" style="height:calc(100dvh - 220px);overflow-y:auto;"></div>
+    <div class="chat-input-bar">
+      <input class="chat-input" id="chat-input" placeholder="Escribí un mensaje..." onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+      <div class="chat-send" onclick="sendChatMsg()">➤</div>
+    </div>`;
+  // Subscribe to chat
+  if(chatUnsub) chatUnsub();
+  const { collection:fsCol, query:fsQ, orderBy:fsOrd, limit:fsLim, onSnapshot:fsSnap } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+  const q = fsQ(fsCol(db,'globalChat'), fsOrd('createdAt','asc'), fsLim(60));
+  chatUnsub = fsSnap(q, snap => {
+    const msgsEl = document.getElementById('chat-messages');
+    if(!msgsEl) return;
+    msgsEl.innerHTML = snap.docs.map(d => {
+      const msg = d.data();
+      if(msg.type==='invite') {
+        let evData = null;
+        let inviteKey = '';
+        try { if(msg.eventData) { evData = JSON.parse(msg.eventData); inviteCounter++; inviteKey='inv_'+inviteCounter; inviteDataMap[inviteKey]=evData; } } catch(e){}
+        const alreadyMine = msg.fromUid === currentUser?.uid;
+        // Trackear por eventId (estable) en lugar de inviteKey (efímero)
+        const eventId = evData?.id || '';
+        const alreadyAccepted = eventId && acceptedInvites.has(eventId);
+        const acceptBtn = evData && !alreadyMine
+          ? (alreadyAccepted
+            ? `<div style="margin-top:8px;padding:8px 14px;background:var(--bg-surface);color:var(--accent);border-radius:8px;font-size:12px;font-weight:600;border:1px solid rgba(0,229,160,0.3);display:inline-block;">✅ Ya me uní</div>`
+            : `<button onclick="acceptEventInvite('${inviteKey}')" style="margin-top:8px;padding:8px 14px;background:var(--accent);color:#0A0F1E;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:Sora,sans-serif;">✅ Agregar a mi calendario</button>`)
+          : '';
+        return `<div class="invite-bubble" style="flex-direction:column;align-items:flex-start;">
+          <div style="display:flex;gap:8px;align-items:center;">🔗 <span style="font-size:13px;font-weight:500;">${msg.text}</span></div>
+          ${evData?`<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${evData.title||''} · ${evData.date?formatDate(evData.date):''}</div>`:''}
+          ${acceptBtn}
+        </div>`;
+      }
+      const mine = msg.uid === currentUser?.uid;
+      const ts = msg.createdAt?.toDate ? msg.createdAt.toDate().toLocaleTimeString('es',[{hour:'2-digit',minute:'2-digit'}]) : '';
+      const avatarHtml = msg.avatar
+        ? `<img src="${msg.avatar}" data-uid="${msg.uid||''}" onclick="openChatUserProfile(this.dataset.uid)" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;cursor:pointer;margin-top:2px;">`
+        : `<div onclick="openChatUserProfile('${msg.uid||''}')" style="width:28px;height:28px;border-radius:50%;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;cursor:pointer;margin-top:2px;">👤</div>`;
+      if(mine) {
+        return `<div class="chat-bubble mine">
+          <div class="chat-text">${msg.text}</div>
+          <div class="chat-time">${ts}</div>
+        </div>`;
+      }
+      return `<div style="display:flex;gap:6px;align-items:flex-start;align-self:flex-start;max-width:82%;">
+        ${avatarHtml}
+        <div class="chat-bubble other" style="margin:0;">
+          <div class="chat-name">${msg.name||'?'}</div>
+          <div class="chat-text">${msg.text}</div>
+          <div class="chat-time">${ts}</div>
+        </div>
+      </div>`;
+    }).join('');
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  });
+}
+
+window.sendChatMsg = async () => {
+  const inp = document.getElementById('chat-input');
+  if(!inp||!inp.value.trim()||!currentUser) return;
+  const txt = inp.value.trim(); inp.value='';
+  try {
+    const { collection:fsCol, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await addDoc(fsCol(db,'globalChat'), {
+      text:txt, uid:currentUser.uid,
+      name:currentUser.displayName||'Anónimo',
+      avatar:currentUser.photoURL||'',
+      createdAt:serverTimestamp()
+    });
+  } catch(e){ showToast('❌ Error al enviar'); }
+};
+
+// ─── PLAYERS ───
+async function renderPlayers(el) {
+  el.innerHTML = `<div style="padding:16px;color:var(--text-secondary);font-size:13px;text-align:center;">Cargando jugadores...</div>`;
+  try {
+    const { collection:fsCol, getDocs:fsGet } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap = await fsGet(fsCol(db,'profiles'));
+    if(snap.empty){ el.innerHTML=`<div class="no-events"><div class="no-events-icon">👥</div><div>Aún no hay jugadores registrados</div></div>`; return; }
+    // Guardar todos en cache
+    snap.docs.forEach(d => { const p=d.data(); if(p.uid) playerCache[p.uid]=p; });
+    const cards = snap.docs.map(d=>{
+      const p=d.data();
+      const pid = p.uid||d.id;
+      playerCache[pid] = p;
+      return `<div class="player-card" data-pid="${pid}" style="cursor:pointer;">
+        <div class="player-avatar-sm">${p.avatar?`<img src="${p.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`:'👤'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;">${p.displayName||p.name||'Jugador'} ${p.category?`<span style="font-size:11px;color:var(--accent2);font-weight:500;">${p.category}</span>`:''}</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${[p.side,p.hand,p.racket].filter(Boolean).join(' · ')||'Sin datos'}</div>
+          ${p.bio?`<div style="font-size:11px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.bio}</div>`:''}
+        </div>
+        ${p.companion?`<div style="font-size:10px;color:var(--text-secondary);text-align:right;flex-shrink:0;">Con<br><strong style="color:var(--text-primary)">${p.companion}</strong></div>`:''}
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div style="padding:12px 0;" id="players-list">${cards}</div>`;
+    // Event delegation — un solo listener en el contenedor
+    document.getElementById('players-list').addEventListener('click', ev => {
+      const card = ev.target.closest('[data-pid]');
+      if(card) {
+        const pid = card.dataset.pid;
+        const p = playerCache[pid];
+        if(p) openPlayerProfile(p);
+      }
+    });
+  } catch(e){ console.error(e); el.innerHTML=`<div class="no-events">Error al cargar jugadores</div>`; }
+}
+
+// ─── PROFILE ───
+async function renderProfile(el) {
+  // Load existing profile
+  try {
+    const { doc:fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap = await getDoc(fsDoc(db,'profiles',currentUser.uid));
+    if(snap.exists()) socialProfile = snap.data();
+  } catch(e){}
+
+  // Compute hours from events
+  let totalH=0, weekH=0, monthH=0;
+  const tk2=todayKey(), now2=new Date();
+  const w7=dateKey(new Date(now2.getFullYear(),now2.getMonth(),now2.getDate()-7));
+  const m30=dateKey(new Date(now2.getFullYear(),now2.getMonth(),now2.getDate()-30));
+  events.forEach(e=>{
+    if(e.date>tk2||!e.timeStart||!e.timeEnd) return;
+    const s=e.timeStart.split(':').map(Number),en=e.timeEnd.split(':').map(Number);
+    const mins=Math.max(0,(en[0]*60+en[1])-(s[0]*60+s[1]));
+    totalH+=mins; if(e.date>=w7) weekH+=mins; if(e.date>=m30) monthH+=mins;
+  });
+
+  const p = socialProfile;
+  el.innerHTML = `
+    <div class="profile-card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        ${currentUser.photoURL?`<img src="${currentUser.photoURL}" class="profile-avatar"/>`:'<div class="profile-avatar" style="background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:28px;">👤</div>'}
+        <div style="flex:1;min-width:0;">
+          <div id="pf-name-display" style="display:flex;align-items:center;gap:6px;">
+            <div id="pf-name-text" style="font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.displayName||currentUser.displayName||'Jugador'}</div>
+            <button onclick="startEditName()" id="pf-name-edit-btn" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-muted);font-size:14px;flex-shrink:0;line-height:1;" title="Editar nombre">✏️</button>
+          </div>
+          <div id="pf-name-input-row" style="display:none;align-items:center;gap:6px;margin-top:2px;">
+            <input id="pf-name-input" class="profile-field" style="padding:6px 10px;font-size:14px;font-weight:600;margin-top:0;" value="${p.displayName||currentUser.displayName||''}" onkeydown="if(event.key==='Enter')confirmEditName();if(event.key==='Escape')cancelEditName()"/>
+            <button onclick="confirmEditName()" style="background:var(--accent);color:#0A0F1E;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">OK</button>
+            <button onclick="cancelEditName()" style="background:var(--bg-surface);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;flex-shrink:0;">✕</button>
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${currentUser.email||''}</div>
+          <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;color:var(--text-secondary);">
+            <span>⏱ ${(totalH/60).toFixed(1)}h total</span>
+            <span>📅 ${(weekH/60).toFixed(1)}h semana</span>
+            <span>🗓 ${(monthH/60).toFixed(1)}h mes</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div><div class="form-label" style="font-size:11px;">Biografía</div><input class="profile-field" id="pf-bio" placeholder="Contá algo de vos..." value="${p.bio||''}"/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><div class="form-label" style="font-size:11px;">Categoría</div>
+            <select class="profile-field" id="pf-cat">
+              ${['','C9','C8','C7','C6','C5','C4','C3','C2','C1'].map(c=>`<option value="${c}" ${p.category===c?'selected':''}>${c||'—'}</option>`).join('')}
+            </select>
+          </div>
+          <div><div class="form-label" style="font-size:11px;">Lado</div>
+            <select class="profile-field" id="pf-side">
+              ${['','Drive','Revés','Ambos'].map(s=>`<option value="${s}" ${p.side===s?'selected':''}>${s||'—'}</option>`).join('')}
+            </select>
+          </div>
+          <div><div class="form-label" style="font-size:11px;">Mano hábil</div>
+            <select class="profile-field" id="pf-hand">
+              ${['','Diestro','Zurdo'].map(s=>`<option value="${s}" ${p.hand===s?'selected':''}>${s||'—'}</option>`).join('')}
+            </select>
+          </div>
+          <div><div class="form-label" style="font-size:11px;">Tiempo jugando</div>
+            <div style="display:grid;grid-template-columns:2fr 3fr;gap:6px;margin-top:6px;">
+              <select class="profile-field" id="pf-exp-num" style="margin-top:0;padding:10px 6px;text-align:center;">
+                <option value="">—</option>
+                \${[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>{const cur=(p.experience||'').split(' ');const sel=cur[0]===String(n)?'selected':'';return \`<option value="\${n}" \${sel}>\${n}</option>\`;}).join('')}
+              </select>
+              <select class="profile-field" id="pf-exp-unit" style="margin-top:0;padding:10px 6px;">
+                <option value="">—</option>
+                \${['Mes','Meses','Año','Años'].map(u=>{const cur=(p.experience||'').split(' ');const sel=cur[1]===u?'selected':'';return \`<option value="\${u}" \${sel}>\${u}</option>\`;}).join('')}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div><div class="form-label" style="font-size:11px;">Marca de paleta</div><input class="profile-field" id="pf-racket" placeholder="ej: Babolat, Head..." value="${p.racket||''}"/></div>
+        <div><div class="form-label" style="font-size:11px;">Compañero habitual</div><input class="profile-field" id="pf-companion" placeholder="Nombre del compañero" value="${p.companion||''}"/></div>
+        <div><div class="form-label" style="font-size:11px;">WhatsApp (solo números, con código de país)</div><input class="profile-field" id="pf-wa" placeholder="ej: 5491112345678" value="${p.whatsapp||''}"/></div>
+        <div><div class="form-label" style="font-size:11px;">Videos de YouTube (URLs, separadas por coma)</div><input class="profile-field" id="pf-yt" placeholder="https://youtube.com/..." value="${(p.youtube||[]).join(', ')}"/></div>
+        <button class="btn-primary" onclick="saveProfile()" style="margin-top:4px;">Guardar perfil</button>
+      </div>
+    </div>`;
+}
+
+window.openPlayerProfile = (p) => {
+  const waBtn = p.whatsapp ? `<a href="https://wa.me/${p.whatsapp.replace(/\D/g,'')}" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:#25D366;color:white;border-radius:var(--radius-md);font-size:13px;font-weight:600;text-decoration:none;flex:1;">💬 WhatsApp</a>` : '';
+  const ytLinks = (p.youtube||[]).slice(0,3).map(u=>`<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;background:var(--danger-dim);color:var(--danger);border-radius:8px;font-size:12px;text-decoration:none;">▶ Video</a>`).join('');
+  const overlay = document.createElement('div');
+  overlay.id='player-profile-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:600;display:flex;align-items:flex-end;';
+  overlay.innerHTML=`
+    <div onclick="closePlayerProfile()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);"></div>
+    <div style="position:relative;width:100%;background:var(--bg-card);border-radius:28px 28px 0 0;padding:16px 20px 40px;max-height:85dvh;overflow-y:auto;z-index:1;">
+      <div style="width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 20px;"></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+        <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid var(--accent);flex-shrink:0;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-size:28px;">
+          ${p.avatar?`<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover;">`:'👤'}
+        </div>
+        <div>
+          <div style="font-size:18px;font-weight:700;">${p.displayName||p.name||'Jugador'}</div>
+          ${p.category?`<span style="background:var(--accent2-dim);color:var(--accent2);border-radius:50px;padding:3px 8px;font-size:11px;font-weight:700;">${p.category}</span>`:''}
+          ${(p.statsTotal||p.statsWeek||p.statsMonth)?`<div style="display:flex;gap:10px;margin-top:6px;font-size:11px;color:var(--text-secondary);">
+            ${p.statsTotal!=null?`<span>⏱ ${p.statsTotal}h total</span>`:''}
+            ${p.statsWeek!=null?`<span>📅 ${p.statsWeek}h semana</span>`:''}
+            ${p.statsMonth!=null?`<span>🗓 ${p.statsMonth}h mes</span>`:''}
+          </div>`:''}
+        </div>
+      </div>
+      ${p.bio?`<div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;">${p.bio}</div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        ${p.side?`<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:10px;padding:10px;"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">LADO</div><div style="font-size:13px;font-weight:600;">${p.side}</div></div>`:''}
+        ${p.hand?`<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:10px;padding:10px;"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">MANO</div><div style="font-size:13px;font-weight:600;">${p.hand}</div></div>`:''}
+        ${p.experience?`<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:10px;padding:10px;"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">TIEMPO JUGANDO</div><div style="font-size:13px;font-weight:600;">${p.experience}</div></div>`:''}
+        ${p.racket?`<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:10px;padding:10px;"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">PALETA</div><div style="font-size:13px;font-weight:600;">${p.racket}</div></div>`:''}
+        ${p.companion?`<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:10px;padding:10px;grid-column:1/-1;"><div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">COMPAÑERO HABITUAL</div><div style="font-size:13px;font-weight:600;">${p.companion}</div></div>`:''}
+      </div>
+      ${ytLinks?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">${ytLinks}</div>`:''}
+      ${waBtn?`<div style="display:flex;gap:10px;">${waBtn}</div>`:''}
+    </div>`;
+  document.body.appendChild(overlay);
+};
+window.closePlayerProfile = () => document.getElementById('player-profile-overlay')?.remove();
+
+window.openChatUserProfile = (uid_) => {
+  if(!uid_) return;
+  const p = playerCache[uid_];
+  if(p) { openPlayerProfile(p); return; }
+  // Si no está en cache, buscarlo en Firestore
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(({ doc:fsDoc, getDoc }) => {
+    getDoc(fsDoc(db,'profiles',uid_)).then(snap => {
+      if(snap.exists()) { const p=snap.data(); playerCache[uid_]=p; openPlayerProfile(p); }
+      else showToast('Perfil no encontrado');
+    });
+  });
+};
+
+// Map para guardar eventData de invitaciones pendientes
+const inviteDataMap = {};
+let inviteCounter = 0;
+
+// Set de invitaciones ya aceptadas (para evitar duplicados en el chat)
+const acceptedInvites = new Set();
+
+window.acceptEventInvite = async (evDataOrKey) => {
+  if(!currentUser) return;
+  const evData = typeof evDataOrKey === 'string' ? inviteDataMap[evDataOrKey] : evDataOrKey;
+  if(!evData) { showToast('❌ No se encontraron datos del evento'); return; }
+  // Trackear por eventId (estable), no por key efímero
+  const eventId = evData.id || '';
+  if(eventId && acceptedInvites.has(eventId)) { showToast('✅ Ya agregado a tu calendario'); return; }
+  try {
+    const newEv = { ...evData, id: uid(), createdAt: Date.now() };
+    delete newEv.turnoFijoId;
+    await fbSave(newEv);
+    // Marcar como aceptada por eventId
+    if(eventId) acceptedInvites.add(eventId);
+    // Borrar la notificación privada de Firestore usando el ID compuesto predecible
+    // El ID de la notif es: toUid_eventId (ver doShareEvent)
+    if(typeof evDataOrKey === 'string') {
+      try {
+        const { doc:fsD2, deleteDoc:fsDel2 } =
+          await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const notifId = currentUser.uid + '_' + eventId;
+        await fsDel2(fsD2(db, 'notifications', notifId));
+      } catch(e){ /* puede no existir si fue del chat global */ }
+    }
+    showToast('✅ Evento agregado a tu calendario!');
+    // Refrescar el panel de perfil si estaba abierto
+    const overlay = document.getElementById('profile-panel-overlay');
+    if(overlay) { closeProfilePanel(); setTimeout(()=>openProfilePanel(), 300); }
+  } catch(err) { showToast('❌ Error al aceptar invitación'); console.error(err); }
+};
+
+// ── EDICIÓN DE NOMBRE EN PERFIL ───────────────
+window.startEditName = () => {
+  document.getElementById('pf-name-display').style.display = 'none';
+  const row = document.getElementById('pf-name-input-row');
+  row.style.display = 'flex';
+  const inp = document.getElementById('pf-name-input');
+  inp.focus(); inp.select();
+};
+window.confirmEditName = () => {
+  const inp = document.getElementById('pf-name-input');
+  const val = inp.value.trim();
+  if(!val) { showToast('⚠️ El nombre no puede estar vacío'); return; }
+  document.getElementById('pf-name-text').textContent = val;
+  document.getElementById('pf-name-input-row').style.display = 'none';
+  document.getElementById('pf-name-display').style.display = 'flex';
+};
+window.cancelEditName = () => {
+  // Restaurar el valor original
+  const cur = document.getElementById('pf-name-text').textContent;
+  document.getElementById('pf-name-input').value = cur;
+  document.getElementById('pf-name-input-row').style.display = 'none';
+  document.getElementById('pf-name-display').style.display = 'flex';
+};
+
+window.saveProfile = async () => {
+  if(!currentUser) return;
+  const ytRaw = document.getElementById('pf-yt').value;
+  const ytArr = ytRaw.split(',').map(s=>s.trim()).filter(Boolean);
+  // Usar el nombre del input (puede haber sido editado), o el del usuario de Google como fallback
+  const customName = (document.getElementById('pf-name-input')?.value.trim()) || currentUser.displayName || '';
+  const profile = {
+    uid: currentUser.uid,
+    name: customName,
+    displayName: customName,
+    avatar: currentUser.photoURL||'',
+    bio: document.getElementById('pf-bio').value.trim(),
+    category: document.getElementById('pf-cat').value,
+    side: document.getElementById('pf-side').value,
+    hand: document.getElementById('pf-hand').value,
+    experience: [document.getElementById('pf-exp-num')?.value, document.getElementById('pf-exp-unit')?.value].filter(Boolean).join(' '),
+    racket: document.getElementById('pf-racket').value.trim(),
+    companion: document.getElementById('pf-companion').value.trim(),
+    whatsapp: document.getElementById('pf-wa').value.trim(),
+    youtube: ytArr,
+    updatedAt: Date.now()
+  };
+  try {
+    const { doc:fsDoc, setDoc:fsSet } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await fsSet(fsDoc(db,'profiles',currentUser.uid), profile);
+    socialProfile = profile;
+    showToast('✅ Perfil guardado');
+  } catch(e){ showToast('❌ Error al guardar perfil'); }
+};
+
+// ── HISTORIAL PANEL ───────────────────────────
+window.openHistorial = () => {
+  renderHistorialPanel();
+  const ov = document.getElementById('historial-overlay');
+  const pn = document.getElementById('historial-panel');
+  ov.style.display = 'flex';
+  setTimeout(() => pn.style.transform = 'translateY(0)', 10);
+};
+window.closeHistorial = () => {
+  const pn = document.getElementById('historial-panel');
+  pn.style.transform = 'translateY(100%)';
+  setTimeout(() => document.getElementById('historial-overlay').style.display = 'none', 350);
+};
+window.handleHistorialOverlayClick = e => {
+  if (e.target === document.getElementById('historial-overlay')) closeHistorial();
+};
+function renderHistorialPanel() {
+  const past = events.filter(e => e.date < todayKey()).sort((a,b) => b.date.localeCompare(a.date));
+  const el = document.getElementById('historial-list');
+  if (!past.length) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">📭 Sin eventos pasados</div>';
+    return;
+  }
+  let lastM = '', html = '';
+  past.forEach(e => {
+    const d = parseDate(e.date);
+    const mk = `${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
+    if (mk !== lastM) {
+      html += `<div class="history-month-label">${mk}</div>`;
+      lastM = mk;
+    }
+    html += buildEventCard(e, true);
+  });
+  el.innerHTML = html;
+}
+
+// ── TOAST ─────────────────────────────────────
+window.showToast = msg => {
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+};
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(reg => console.log('✅ SW registrado:', reg.scope))
+        .catch(err => console.warn('⚠️ SW error:', err));
+    });
+  }
+</script>
+</body>
+</html>
